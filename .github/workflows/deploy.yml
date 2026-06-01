@@ -44,6 +44,8 @@ jobs:
         run: npx quartz plugin install
       - name: Build Quartz
         run: npx quartz build
+      - name: Copy Google Verification
+        run: cp content/google5ea0e11a58705da0.html public/ || true
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
