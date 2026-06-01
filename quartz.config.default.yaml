@@ -7,7 +7,7 @@ configuration:
   analytics:
     provider: plausible
   locale: en-US
-  baseUrl: quartz.jzhao.xyz
+  baseUrl: jaehyeon-jo.github.io
   ignorePatterns:
     - private
     - templates
@@ -185,10 +185,18 @@ plugins:
       priority: 5
       condition: not-index
   - source: github:quartz-community/comments
-    enabled: false
+    enabled: true
     options:
       provider: giscus
-      options: {}
+      options:
+        repo: JaeHyeon-Jo/JaeHyeon-Jo.github.io
+        repoId: "" # GitHub Discussions must be enabled
+        category: Announcements
+        categoryId: ""
+        mapping: pathname
+        strict: false
+        reactionsEnabled: true
+        inputPosition: bottom
     layout:
       position: afterBody
       priority: 10
