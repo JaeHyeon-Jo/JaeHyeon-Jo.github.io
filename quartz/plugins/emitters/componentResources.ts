@@ -181,19 +181,15 @@ function addGlobalPageResources(ctx: BuildCtx, componentResources: ComponentReso
         const counterUrl = "${counterBase}/counter/" + encodeURIComponent(path) + ".json";
         fetch(counterUrl, { cache: "no-store" })
           .then((response) => {
+            if (response.status === 404) return { count: "0" };
             if (!response.ok) throw new Error("Counter request failed");
             return response.json();
           })
           .then((data) => {
-            if (!data || !data.count) {
-              viewEl.remove();
-              return;
-            }
-
-            viewEl.textContent = "조회수 " + data.count;
+            viewEl.textContent = "👀 조회수 " + (data?.count ?? "0");
           })
           .catch(() => {
-            viewEl.remove();
+            viewEl.textContent = "👀 조회수 0";
           });
       };
 
