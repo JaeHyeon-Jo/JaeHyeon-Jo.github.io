@@ -50,6 +50,14 @@ jobs:
         run: npx quartz build
       - name: Copy Google Verification
         run: cp content/google5ea0e11a58705da0.html public/ || true
+      - name: Create robots.txt
+        run: |
+          printf '%s\n' \
+            'User-agent: *' \
+            'Allow: /' \
+            '' \
+            'Sitemap: https://jaehyeon-jo.github.io/sitemap.xml' \
+            > public/robots.txt
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
