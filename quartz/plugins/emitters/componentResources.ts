@@ -154,9 +154,9 @@ function addGlobalPageResources(ctx: BuildCtx, componentResources: ComponentReso
       goatcounterScript.setAttribute('data-goatcounter', endpoint);
       goatcounterScript.onload = () => {
         window.goatcounter.endpoint = endpoint;
-        goatcounter.count({ path: location.pathname });
+        goatcounter.count({ path: decodeURI(location.pathname) });
         document.addEventListener('nav', () => {
-          goatcounter.count({ path: location.pathname });
+          goatcounter.count({ path: decodeURI(location.pathname) });
         });
       };
 
@@ -166,7 +166,7 @@ function addGlobalPageResources(ctx: BuildCtx, componentResources: ComponentReso
         const meta = document.querySelector(".content-meta");
         if (!meta) return;
 
-        const path = location.pathname;
+        const path = decodeURI(location.pathname);
         if (!path || path === "/") return;
 
         let viewEl = meta.querySelector("[data-page-views]");
