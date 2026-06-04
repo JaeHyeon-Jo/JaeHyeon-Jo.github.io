@@ -42,6 +42,10 @@ jobs:
         run: npm ci
       - name: Install Quartz plugins
         run: npx quartz plugin install
+      - name: Patch Explorer sorting
+        run: |
+          sed -i 's/return (a.displayName || "").localeCompare/if (a.data \&\& b.data) { const aDate = a.data.dates?.modified ?? a.data.dates?.created ?? new Date(0); const bDate = b.data.dates?.modified ?? b.data.dates?.created ?? new Date(0); if (aDate.getTime() !== bDate.getTime()) { return bDate.getTime() - aDate.getTime(); } } return (a.displayName || "").localeCompare/' .quartz/plugins/explorer/src/components/Explorer.tsx
+          cd .quartz/plugins/explorer && npm run build
       - name: Build Quartz
         run: npx quartz build
       - name: Copy Google Verification
