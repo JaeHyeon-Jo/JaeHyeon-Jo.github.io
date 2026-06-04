@@ -44,7 +44,7 @@ jobs:
         run: npx quartz plugin install
       - name: Patch Explorer sorting
         run: |
-          sed -i 's/return (a.displayName || "").localeCompare/if (a.data \&\& b.data) { const aDate = (a.data as any).dates?.modified ?? (a.data as any).dates?.created ?? new Date(0); const bDate = (b.data as any).dates?.modified ?? (b.data as any).dates?.created ?? new Date(0); if (aDate.getTime() !== bDate.getTime()) { return bDate.getTime() - aDate.getTime(); } } return (a.displayName || "").localeCompare/' .quartz/plugins/explorer/src/components/Explorer.tsx
+          sed -i 's/return (a.displayName || "").localeCompare/if (a.data \&\& b.data) { const aD = (a.data as any).dates?.modified ?? (a.data as any).dates?.created; const bD = (b.data as any).dates?.modified ?? (b.data as any).dates?.created; const aDate = aD ? new Date(aD) : new Date(0); const bDate = bD ? new Date(bD) : new Date(0); if (aDate.getTime() !== bDate.getTime()) { return bDate.getTime() - aDate.getTime(); } } return (a.displayName || "").localeCompare/' .quartz/plugins/explorer/src/components/Explorer.tsx
           cd .quartz/plugins/explorer && npm install && npm run build
       - name: Build Quartz
         run: npx quartz build
