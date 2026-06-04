@@ -139,6 +139,7 @@ function addGlobalPageResources(ctx: BuildCtx, componentResources: ComponentReso
       document.head.appendChild(umamiScript);
     `)
   } else if (cfg.analytics?.provider === "goatcounter") {
+    const counterBase = `https://${cfg.analytics.websiteId}.${cfg.analytics.host ?? "goatcounter.com"}`
     componentResources.afterDOMLoaded.push(`
       const goatcounterScriptPre = document.createElement('script');
       goatcounterScriptPre.textContent = \`
@@ -146,7 +147,7 @@ function addGlobalPageResources(ctx: BuildCtx, componentResources: ComponentReso
       \`;
       document.head.appendChild(goatcounterScriptPre);
 
-      const endpoint = "https://${cfg.analytics.websiteId}.${cfg.analytics.host ?? "goatcounter.com"}/count";
+      const endpoint = "${counterBase}/count";
       const goatcounterScript = document.createElement('script');
       goatcounterScript.src = "${cfg.analytics.scriptSrc ?? "https://gc.zgo.at/count.js"}";
       goatcounterScript.defer = true;
@@ -160,6 +161,48 @@ function addGlobalPageResources(ctx: BuildCtx, componentResources: ComponentReso
       };
 
       document.head.appendChild(goatcounterScript);
+
+      const renderGoatCounterViews = () => {
+        const meta = document.querySelector(".content-meta");
+        if (!meta) return;
+
+        const path = location.pathname;
+        if (!path || path === "/") return;
+
+        let viewEl = meta.querySelector("[data-page-views]");
+        if (!viewEl) {
+          viewEl = document.createElement("span");
+          viewEl.className = "page-views";
+          viewEl.setAttribute("data-page-views", "true");
+          viewEl.textContent = "조회수 확인중";
+          meta.appendChild(viewEl);
+        }
+
+        const counterUrl = "${counterBase}/counter/" + encodeURIComponent(path) + ".json";
+        fetch(counterUrl, { cache: "no-store" })
+          .then((response) => {
+            if (!response.ok) throw new Error("Counter request failed");
+            return response.json();
+          })
+          .then((data) => {
+            if (!data || !data.count) {
+              viewEl.remove();
+              return;
+            }
+
+            viewEl.textContent = "조회수 " + data.count;
+          })
+          .catch(() => {
+            viewEl.remove();
+          });
+      };
+
+      const scheduleGoatCounterViews = () => {
+        window.requestAnimationFrame(() => window.setTimeout(renderGoatCounterViews, 80));
+      };
+
+      scheduleGoatCounterViews();
+      document.addEventListener("nav", scheduleGoatCounterViews);
     `)
   } else if (cfg.analytics?.provider === "posthog") {
     componentResources.afterDOMLoaded.push(`

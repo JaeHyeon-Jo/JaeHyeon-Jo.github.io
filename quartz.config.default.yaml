@@ -5,7 +5,8 @@ configuration:
   enableSPA: true
   enablePopovers: true
   analytics:
-    provider: plausible
+    provider: goatcounter
+    websiteId: jaehyeon-jo
   locale: en-US
   baseUrl: jaehyeon-jo.github.io
   ignorePatterns:
