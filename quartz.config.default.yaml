@@ -125,6 +125,54 @@ plugins:
     enabled: true
   - source: github:quartz-community/explorer
     enabled: true
+    options:
+      sortFn: |
+        (a, b) => {
+          const getTime = (node) => {
+            const raw =
+              node.data?.frontmatter?.date ??
+              node.data?.frontmatter?.published ??
+              node.data?.frontmatter?.created ??
+              node.data?.dates?.published ??
+              node.data?.dates?.created ??
+              node.data?.dates?.modified
+            const date = raw instanceof Date ? raw : new Date(raw || 0)
+            const time = date.getTime()
+            return Number.isNaN(time) ? 0 : time
+          }
+          const getTitleRank = (node) => {
+            const title = node.displayName || node.data?.title || ""
+            const match = title.match(
+              /(\d+)월\s+(\d+)째주\s+(월요일|화요일|수요일|목요일|금요일|토요일|일요일)/,
+            )
+            if (!match) return 0
+            const dayOrder = {
+              월요일: 1,
+              화요일: 2,
+              수요일: 3,
+              목요일: 4,
+              금요일: 5,
+              토요일: 6,
+              일요일: 7,
+            }
+            return Number(match[1]) * 100 + Number(match[2]) * 10 + dayOrder[match[3]]
+          }
+
+          if ((!a.isFolder && !b.isFolder) || (a.isFolder && b.isFolder)) {
+            const aTime = getTime(a)
+            const bTime = getTime(b)
+            if (aTime !== bTime) return bTime - aTime
+            const aRank = getTitleRank(a)
+            const bRank = getTitleRank(b)
+            if (aRank !== bRank) return bRank - aRank
+            return (a.displayName || "").localeCompare(b.displayName || "", undefined, {
+              numeric: true,
+              sensitivity: "base",
+            })
+          }
+
+          return a.isFolder ? -1 : 1
+        }
     layout:
       position: left
       priority: 50
