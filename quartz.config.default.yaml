@@ -256,7 +256,7 @@ plugins:
     options:
       links:
         점심 기록 전체: https://jaehyeon-jo.github.io/점심메뉴/
-        식당별 기록: https://jaehyeon-jo.github.io/식당/
+        개발 기록: https://jaehyeon-jo.github.io/개발/
         RSS 구독: https://jaehyeon-jo.github.io/index.xml
         GitHub: https://github.com/JaeHyeon-Jo
   - source: github:quartz-community/recent-notes
