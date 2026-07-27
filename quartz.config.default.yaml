@@ -7,7 +7,7 @@ configuration:
   analytics:
     provider: goatcounter
     websiteId: jaehyeon-jo
-  locale: en-US
+  locale: ko-KR
   baseUrl: jaehyeon-jo.github.io
   ignorePatterns:
     - private
@@ -17,8 +17,8 @@ configuration:
     fontOrigin: googleFonts
     cdnCaching: true
     typography:
-      header: Schibsted Grotesk
-      body: Source Sans Pro
+      header: Noto Sans KR
+      body: Noto Sans KR
       code: IBM Plex Mono
     colors:
       lightMode:
@@ -112,8 +112,10 @@ plugins:
       enableRSS: true
   - source: github:quartz-community/favicon
     enabled: true
+  # 글마다 다른 공유 썸네일. frontmatter의 socialImage(음식 사진 절대 URL)가 있으면 그걸 쓰고,
+  # 없는 페이지(홈·식당 허브·태그)는 제목/설명으로 카드 이미지를 자동 생성한다.
   - source: github:quartz-community/og-image
-    enabled: false
+    enabled: true
   - source: github:quartz-community/cname
     enabled: true
   - source: github:quartz-community/canvas-page
@@ -239,9 +241,9 @@ plugins:
       provider: giscus
       options:
         repo: JaeHyeon-Jo/JaeHyeon-Jo.github.io
-        repoId: "" # GitHub Discussions must be enabled
+        repoId: R_kgDOSoy_7g
         category: Announcements
-        categoryId: ""
+        categoryId: DIC_kwDOSoy_7s4C-R1K
         mapping: pathname
         strict: false
         reactionsEnabled: true
@@ -253,8 +255,10 @@ plugins:
     enabled: true
     options:
       links:
-        GitHub: https://github.com/jackyzha0/quartz
-        Discord Community: https://discord.gg/cRFFHYye7t
+        점심 기록 전체: https://jaehyeon-jo.github.io/점심메뉴/
+        식당별 기록: https://jaehyeon-jo.github.io/식당/
+        RSS 구독: https://jaehyeon-jo.github.io/index.xml
+        GitHub: https://github.com/JaeHyeon-Jo
   - source: github:quartz-community/recent-notes
     enabled: false
   - source: github:quartz-community/spacer
@@ -273,8 +277,9 @@ plugins:
     enabled: true
     options:
       includeAll: false
+      # description은 검색 스니펫(<meta>)용이라 본문에 또 보여줄 필요가 없다.
+      # 넣어두면 모든 글 맨 위에 같은 문장이 한 번 더 나온다.
       includedProperties:
-        - description
         - tags
         - aliases
       excludedProperties: []
