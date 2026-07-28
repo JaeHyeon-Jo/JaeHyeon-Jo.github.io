@@ -108,6 +108,7 @@ graph TD
 ---
 
 ## 🔗 함께 읽으면 좋은 글
+- [[Obsidian-GPS-위치-삽입-플러그인-개발기|Obsidian GPS Location — 내 입맛대로 만드는 메모 앱 플러그인]]
 - [[lite-capture-개발기|lite-capture — 내 입맛대로 만든 10MB 캡처 도구 개발 회고]]
 - [[index|🍱 Guri Blog 홈으로 돌아가기]]
 

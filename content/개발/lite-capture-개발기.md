@@ -163,6 +163,7 @@ jobs:
 ---
 
 ## 🔗 함께 읽으면 좋은 글
+- [[Obsidian-GPS-위치-삽입-플러그인-개발기|Obsidian GPS Location — 내 입맛대로 만드는 메모 앱 플러그인]]
 - [[D-Plus-Day-기록-트래커-개발기|D+Day — 이발 주기 헷갈려서 만든 D+ 트래커 개발 회고]]
 - [[index|🍱 Guri Blog 홈으로 돌아가기]]
 
