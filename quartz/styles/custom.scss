@@ -65,3 +65,75 @@ article img {
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
   }
 }
+
+// ==========================================
+// 📱 모바일 화면 전용 디자인 및 가독성 개선 (800px 이하)
+// ==========================================
+// PC에서는 숨겨지고 모바일에서만 노출되는 퀵 카드/배너 스타일
+.mobile-only-card {
+  display: none;
+}
+
+@media all and #{$mobile} {
+  .mobile-only-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--lightgray);
+    border: 1px solid var(--gray);
+    border-radius: 12px;
+    padding: 0.85rem 1.1rem;
+    margin: 1rem 0 1.5rem 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  // 1. 모바일 본문 텍스트 가독성 극대화 (한글 줄바꿈 최적화 및 줄간격 확대)
+  article {
+    p, li {
+      font-size: 1.05rem;
+      line-height: 1.8;
+      word-break: keep-all; // 한글 단어 단위 줄바꿈으로 가독성 향상
+      overflow-wrap: break-word;
+    }
+
+    // 모바일에서 제목(H1~H4) 줄바꿈 및 간격 최적화
+    h1, h2, h3, h4 {
+      word-break: keep-all;
+      line-height: 1.4;
+    }
+
+    // 터치 환경을 고려한 링크 및 버튼 클릭 영역 최적화
+    a.internal {
+      padding: 0.15rem 0.25rem;
+    }
+  }
+
+  // 2. 모바일 표(Table) 가로 스크롤 카드화 (모바일에서 표 찌그러짐·넘침 방지)
+  .table-container {
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--lightgray);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 1.2rem 0;
+
+    table {
+      margin: 0;
+      width: 100%;
+      min-width: 540px; // 표 너비 유지하여 글자 찌그러짐 방지
+    }
+  }
+
+  // 3. 모바일 화면 복잡도 완화 (그래프 뷰 숨김 처리로 본문 집중 및 로딩 속도 개선)
+  .right.sidebar .graph {
+    display: none !important;
+  }
+
+  // 4. 모바일 탐색 및 좌우 여백 정리
+  .left.sidebar {
+    gap: 1rem;
+  }
+}
+
