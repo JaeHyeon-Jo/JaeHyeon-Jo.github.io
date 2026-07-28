@@ -135,5 +135,17 @@ article img {
   .left.sidebar {
     gap: 1rem;
   }
+
+  // 5. 모바일 Safari(iOS) Explorer 닫힘 시 텍스트 삐져나옴('구' 등 글자 노출 버그) 및 화면 가로 넘침 완벽 차단
+  .explorer.collapsed > .explorer-content {
+    overflow: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    left: -100vw !important;
+  }
+
+  #quartz-body {
+    overflow-x: hidden;
+  }
 }
 
