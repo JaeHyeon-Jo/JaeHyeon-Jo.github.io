@@ -6,3 +6,45 @@
   color: var(--gray);
   white-space: nowrap;
 }
+
+// ==========================================
+// 왼쪽 Explorer(탐색기) 파일 목록 가독성 & 구분자 개선
+// ==========================================
+.explorer-content ul li > a {
+  display: flex;
+  align-items: baseline;
+  padding: 0.28rem 0;
+  margin: 0.15rem 0;
+  line-height: 1.45;
+  color: var(--dark);
+  opacity: 0.85;
+  transition: all 0.2s ease;
+
+  // 파일 목록 앞에 직관적이고 세련된 불릿 점(•) 추가
+  &::before {
+    content: "•";
+    color: var(--gray);
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-right: 0.55rem;
+    flex-shrink: 0;
+    transition: color 0.2s ease;
+  }
+
+  // 마우스 호버 및 활성화(현재 페이지) 스타일
+  &:hover,
+  &.active {
+    opacity: 1;
+    color: var(--tertiary);
+
+    &::before {
+      color: var(--tertiary);
+    }
+  }
+}
+
+// 폴더 목록과 내부 파일 간의 위아래 여백 개선
+.explorer-content .folder-outer > ul {
+  padding-top: 0.2rem;
+  padding-bottom: 0.4rem;
+}
