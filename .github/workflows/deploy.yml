@@ -50,6 +50,10 @@ jobs:
         run: npx quartz build
       - name: Copy Google Verification
         run: cp content/google5ea0e11a58705da0.html public/ || true
+      # Quartz는 content/의 raw .html을 배포하지 않는다(위 인증 파일과 같은 이유).
+      # 팀 공유 점심 보드 → https://jaehyeon-jo.github.io/lunch/
+      - name: Copy lunch board
+        run: mkdir -p public/lunch && cp content/lunch/index.html public/lunch/ || true
       - name: Create robots.txt
         run: |
           printf '%s\n' \
