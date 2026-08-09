@@ -120,7 +120,6 @@
   .day.has-photo .meta { color: #fff; }
   .day .rest { font-weight: 650; font-size: .96rem; letter-spacing: -.01em; }
   .day .menu { font-size: .82rem; opacity: .92; margin-top: 2px; }
-  .day .note { font-size: .78rem; opacity: .78; margin-top: 5px; font-style: italic; }
   .day .empty { padding: 13px; color: var(--ink-3); font-size: .84rem; }
   .chip {
     display: inline-flex; align-items: center; gap: 5px;
@@ -204,6 +203,51 @@
   footer { color: var(--ink-3); font-size: .8rem; text-align: center; margin-top: 36px; }
   [hidden] { display: none !important; }
 
+  /* ── 상세보기 ── */
+  /* 누를 수 있는 요소라는 걸 알려준다. 기록 없는 날은 이 클래스가 안 붙는다. */
+  .openable { cursor: pointer; }
+  .day .body.openable:hover .rest { text-decoration: underline; text-underline-offset: 3px; }
+  .cell .mini.openable:hover span { text-decoration: underline; }
+  .openable:focus-visible { outline: 2px solid var(--accent-from); outline-offset: 2px; }
+
+  #detail {
+    position: fixed; inset: 0; z-index: 100; display: none;
+    align-items: center; justify-content: center; padding: 24px;
+    background: rgba(2, 6, 23, .62);
+  }
+  #detail.on { display: flex; }
+  #detail .box {
+    position: relative;   /* 닫기 버튼을 화면이 아니라 이 박스 기준으로 붙인다 */
+    background: var(--surface); border-radius: 16px; overflow: hidden;
+    width: min(680px, 100%); max-height: 90vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 24px 60px rgba(2, 6, 23, .4);
+  }
+  /* 사진 원본이 3MB급이라 화면을 넘지 않게 가둔다. */
+  #detail .shot {
+    width: 100%; max-height: 54vh; object-fit: contain;
+    background: #0f172a; display: block; flex: none;
+  }
+  #detail .info { padding: 18px 20px 20px; overflow-y: auto; }
+  #detail .when { font-size: .84rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  #detail .name { font-size: 1.5rem; font-weight: 700; letter-spacing: -.02em; margin: 2px 0 8px; }
+  #detail .tags { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  #detail .row { display: flex; gap: 10px; font-size: .95rem; padding: 7px 0; border-top: 1px solid var(--hairline); }
+  #detail .row .k { color: var(--ink-2); flex: none; min-width: 52px; }
+  #detail .close {
+    position: absolute; top: 12px; right: 12px; z-index: 1;
+    appearance: none; cursor: pointer; border: 0; border-radius: 999px;
+    width: 36px; height: 36px; font-size: 1rem; line-height: 1;
+    background: rgba(255, 255, 255, .92); color: #0f172a;
+    box-shadow: 0 2px 8px rgba(2, 6, 23, .25);
+  }
+  #detail .close:hover { background: #fff; }
+  @media (max-width: 560px) {
+    #detail { padding: 12px; }
+    #detail .name { font-size: 1.25rem; }
+    #detail .shot { max-height: 42vh; }
+  }
+
   /* ── 툴팁 ── */
   #tip {
     position: fixed; z-index: 50; pointer-events: none; opacity: 0;
@@ -221,7 +265,6 @@
     .day { min-height: 300px; }
     .day .rest { font-size: 1.2rem; }
     .day .menu { font-size: 1rem; }
-    .day .note { font-size: .9rem; }
     .day .dow { font-size: 1.05rem; }
     .reco .pick { font-size: 2.1rem; }
     .kpi .value { font-size: 2.3rem; }
@@ -242,7 +285,7 @@
     .day { min-height: 0; }
     .rank .row { grid-template-columns: minmax(74px, 108px) 1fr auto; }
   }
-  @media print { .seg, .nav, .reco .cta { display: none; } }
+  @media print { .seg, .nav, .reco .cta, #detail, #tip { display: none !important; } }
 </style>
 </head>
 <body>
@@ -317,14 +360,27 @@
     <div class="tbl-scroll">
       <table>
         <thead><tr>
-          <th class="num">날짜</th><th>식당</th><th>지역</th><th>분류</th><th class="wide">메뉴</th><th class="wide">한줄평</th>
+          <th class="num">날짜</th><th>식당</th><th>지역</th><th>분류</th><th class="wide">메뉴</th>
         </tr></thead>
         <tbody id="tbody"></tbody>
       </table>
     </div>
   </details>
 
-  <footer>2026-08-09 20:30 기준 · 회사 점심 기록만 표시합니다</footer>
+  <footer>2026-08-10 05:33 기준 · 회사 점심 기록만 표시합니다</footer>
+</div>
+
+<div id="detail" role="dialog" aria-modal="true" aria-labelledby="detail-name">
+  <div class="box">
+    <button class="close" id="detail-close" aria-label="닫기">✕</button>
+    <img class="shot" id="detail-shot" alt="" hidden>
+    <div class="info">
+      <div class="when" id="detail-when"></div>
+      <div class="name" id="detail-name"></div>
+      <div class="tags" id="detail-tags"></div>
+      <div class="row"><span class="k">메뉴</span><span id="detail-menu"></span></div>
+    </div>
+  </div>
 </div>
 
 <div id="tip" role="tooltip"></div>
@@ -333,7 +389,7 @@
 (function () {
   "use strict";
 
-  var POSTS = [{"date": "2026-08-05", "restaurant": "갓파도", "dong": "신대방동", "menu": "특선초밥", "review": "비싸지만 회랑 밥이 맛있는 초밥", "category": "일식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-08-05_%EA%B0%93%ED%8C%8C%EB%8F%84_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-30", "restaurant": "대구일색 보라매공원점", "dong": "신대방동", "menu": "맑은탕", "review": "이전에 점심특선 있었는데 사라지고 맑은탕이 점심특선된 느낌.. 뚝배기로 바뀌면서 양도 줄고 아쉬워짐 그래도 국물맛은 그대로 깔끔하고 좋다", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-30_%EB%8C%80%EA%B5%AC%EC%9D%BC%EC%83%89_%EB%B3%B4%EB%9D%BC%EB%A7%A4%EA%B3%B5%EC%9B%90%EC%A0%90_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-29", "restaurant": "동양솥밥", "dong": "신대방동", "menu": "동파육덮밥", "review": "다른거 없이 숫가락으로 먹을수 있는 한끼 식사", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-29_%EB%8F%99%EC%96%91%EC%86%A5%EB%B0%A5_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-28", "restaurant": "보라매궁중삼계탕", "dong": "신대방동", "menu": "한방 삼계탕", "review": "보라매공원 유일? 삼계탕 오이고추가 신선하고 맛있음 기본기는 탄탄 가격만 좀 내렸으면,,", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-28_%EB%B3%B4%EB%9D%BC%EB%A7%A4%EA%B6%81%EC%A4%91%EC%82%BC%EA%B3%84%ED%83%95_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-27", "restaurant": "아비꼬", "dong": "신대방동", "menu": "정식 A (돈육카레, 가라아게2점, 우동)", "review": "자극적인 맛, 스트레스 받을때 가끔 올듯", "category": "일식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-27_%EC%95%84%EB%B9%84%EA%BC%AC_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-21", "restaurant": "도리장칼국수", "dong": "신대방동", "menu": "장칼국수 + 감자전", "review": "바삭하고 얇은 감자전을 기대했지만, 끝은 바삭하지만 두꺼워서 감자맛이 강한 감자전", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-21_%EB%8F%84%EB%A6%AC%EC%9E%A5%EC%B9%BC%EA%B5%AD%EC%88%98_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-16", "restaurant": "서평면옥", "dong": "신대방동", "menu": "평양냉면 만두 세트", "review": "정말 깔끔한 냉면, 평양냉면인데 채소 먹은것 처럼 청량한 느낌 나는 냉면", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-16_%EC%84%9C%ED%8F%89%EB%A9%B4%EC%98%A5_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-09", "restaurant": "본죽&비빔밥cafe 보라매점", "dong": "신대방동", "menu": "제육비빔밥 돌솥 변경", "review": "돌솥 변경 천원 추가 인데 그냥 돌솥에 주는게 다인듯.. 그래도 맛은 좋다 깔끔하고 든든", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-09_%EB%B3%B8%EC%A3%BD-and-%EB%B9%84%EB%B9%94%EB%B0%A5cafe_%EB%B3%B4%EB%9D%BC%EB%A7%A4%EC%A0%90_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-30", "restaurant": "갓파도", "dong": "신대방동", "menu": "돈까스 정식", "review": "후토마끼, 돈까스, 초밥 구성이 알차지만 초밥은 아쉽.. 가격 좀 올리더라도 초밥은 활어회 들어 갔으면", "category": "일식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-30_%EA%B0%93%ED%8C%8C%EB%8F%84_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-24", "restaurant": "북창동순두부", "dong": "신대방동", "menu": "2인 실속 메뉴 소곱창 옵션 변경", "review": "만만한 순두부찌개 중간 이상은 간다", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-24_%EB%B6%81%EC%B0%BD%EB%8F%99%EC%88%9C%EB%91%90%EB%B6%80_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-23", "restaurant": "차이30", "dong": "신대방동", "menu": "차이짜장", "review": "든든한 짜짱면과 샐러드 바 거기에 탁 트인 스카이라인 완벽", "category": "중식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-23_%EC%B0%A8%EC%9D%B430_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-22", "restaurant": "청가맛", "dong": "신대방동", "menu": "돼지고추장찌개", "review": "고기는 얼마 안 들었지만 맛은 있다", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-22_%EC%B2%AD%EA%B0%80%EB%A7%9B_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-17", "restaurant": "동양솥밥", "dong": "신대방동", "menu": "부타항정살 솥밥", "review": "양이 살짝 부족하지만 맛있는 한끼", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-17_%EB%8F%99%EC%96%91%EC%86%A5%EB%B0%A5_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-16", "restaurant": "도리장칼국수", "dong": "신대방동", "menu": "장칼국수 특, 미니 된장덮밥", "review": "역시 맛있는데 특에 미니 된장덮밥은 배부르다 다음엔 감자전 도전", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-16_%EB%8F%84%EB%A6%AC%EC%9E%A5%EC%B9%BC%EA%B5%AD%EC%88%98_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-15", "restaurant": "갓파도", "dong": "신대방동", "menu": "특선초밥 19000원", "review": "회가 제법 상태가 좋고 밥도 신경쓴 초밥집", "category": "일식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-15_%EA%B0%93%ED%8C%8C%EB%8F%84_%EC%8A%A4%EC%8B%9C_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-11", "restaurant": "미청진 구로구청본점", "dong": "신대방동", "menu": "국밥, 이북만두", "review": "담백한 맛을 기대했는데 다소 짰다.. 좀더 담백했으면 좋겠다", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-11_%EB%AF%B8%EC%B2%AD%EC%A7%84_%EA%B5%AC%EB%A1%9C%EA%B5%AC%EC%B2%AD%EB%B3%B8%EC%A0%90_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-10", "restaurant": "지미존스 보라매병원점", "dong": "신대방동", "menu": "빌리어쩌구?", "review": "서브웨이 요즘 안 먹어 봤지만, 그래도 좀더 실한 편", "category": "양식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-10_%EC%A7%80%EB%AF%B8%EC%A1%B4%EC%8A%A4_%EB%B3%B4%EB%9D%BC%EB%A7%A4%EB%B3%91%EC%9B%90%EC%A0%90_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-09", "restaurant": "북창동순두부", "dong": "신대방동", "menu": "곱창순두부 불고기 정식", "review": "뭐 먹을지 고민될때 만만하게 올 수 있는 순두부 집", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-09_%EB%B6%81%EC%B0%BD%EB%8F%99%EC%88%9C%EB%91%90%EB%B6%80_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-08", "restaurant": "도리장칼국수", "dong": "신대방동", "menu": "장칼국수, 미니 된장밥", "review": "자극적이지 않은 장칼국수! 면 좋아하면 곱배기도 좋을듯 (다음엔 곱배기) 된장밥도 맛있다", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-08_%EB%8F%84%EB%A6%AC%EC%9E%A5%EC%B9%BC%EA%B5%AD%EC%88%98_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-05", "restaurant": "스시모도리", "dong": "신대방동", "menu": "회전초밥 9접시?", "review": "가성비 좋은 회전초밥집!", "category": "일식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-05_%EC%8A%A4%EC%8B%9C%EB%AA%A8%EB%8F%84%EB%A6%AC_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-04", "restaurant": "본 비빔밥", "dong": "신대방동", "menu": "불낙비빔밥", "review": "고3 수능 칠때 싸갔던 메뉴, 이름은 쌔지만 간은 쌔지 않은 속편한 음식", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/%EB%B3%B8-%EB%B9%84%EB%B9%94%EB%B0%A5_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-02", "restaurant": "궁중 삼계탕", "dong": "신대방동", "menu": "한방삼계탕", "review": "기본 삼계탕, 근데 깍두기 맛있고 오이 고추가 신선해서 맛있다", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/%EA%B6%81%EC%A4%91-%EC%82%BC%EA%B3%84%ED%83%95_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-01", "restaurant": "백소정", "dong": "신대방동", "menu": "냉우동 가라아게 에비카츠", "review": "면발이 엄청 쫄깃함~! 항상 중간은 가는 백소정", "category": "일식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/%EB%B0%B1%EC%86%8C%EC%A0%95_%EC%9D%8C%EC%8B%9D.jpeg"}];
+  var POSTS = [{"date": "2026-08-05", "restaurant": "갓파도", "dong": "신대방동", "menu": "특선초밥", "category": "일식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-08-05_%EA%B0%93%ED%8C%8C%EB%8F%84_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-30", "restaurant": "대구일색 보라매공원점", "dong": "신대방동", "menu": "맑은탕", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-30_%EB%8C%80%EA%B5%AC%EC%9D%BC%EC%83%89_%EB%B3%B4%EB%9D%BC%EB%A7%A4%EA%B3%B5%EC%9B%90%EC%A0%90_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-29", "restaurant": "동양솥밥", "dong": "신대방동", "menu": "동파육덮밥", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-29_%EB%8F%99%EC%96%91%EC%86%A5%EB%B0%A5_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-28", "restaurant": "보라매궁중삼계탕", "dong": "신대방동", "menu": "한방 삼계탕", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-28_%EB%B3%B4%EB%9D%BC%EB%A7%A4%EA%B6%81%EC%A4%91%EC%82%BC%EA%B3%84%ED%83%95_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-27", "restaurant": "아비꼬", "dong": "신대방동", "menu": "정식 A (돈육카레, 가라아게2점, 우동)", "category": "일식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-27_%EC%95%84%EB%B9%84%EA%BC%AC_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-21", "restaurant": "도리장칼국수", "dong": "신대방동", "menu": "장칼국수 + 감자전", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-21_%EB%8F%84%EB%A6%AC%EC%9E%A5%EC%B9%BC%EA%B5%AD%EC%88%98_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-16", "restaurant": "서평면옥", "dong": "신대방동", "menu": "평양냉면 만두 세트", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-16_%EC%84%9C%ED%8F%89%EB%A9%B4%EC%98%A5_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-09", "restaurant": "본죽&비빔밥cafe 보라매점", "dong": "신대방동", "menu": "제육비빔밥 돌솥 변경", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-09_%EB%B3%B8%EC%A3%BD-and-%EB%B9%84%EB%B9%94%EB%B0%A5cafe_%EB%B3%B4%EB%9D%BC%EB%A7%A4%EC%A0%90_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-30", "restaurant": "갓파도", "dong": "신대방동", "menu": "돈까스 정식", "category": "일식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-30_%EA%B0%93%ED%8C%8C%EB%8F%84_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-24", "restaurant": "북창동순두부", "dong": "신대방동", "menu": "2인 실속 메뉴 소곱창 옵션 변경", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-24_%EB%B6%81%EC%B0%BD%EB%8F%99%EC%88%9C%EB%91%90%EB%B6%80_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-23", "restaurant": "차이30", "dong": "신대방동", "menu": "차이짜장", "category": "중식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-23_%EC%B0%A8%EC%9D%B430_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-22", "restaurant": "청가맛", "dong": "신대방동", "menu": "돼지고추장찌개", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-22_%EC%B2%AD%EA%B0%80%EB%A7%9B_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-17", "restaurant": "동양솥밥", "dong": "신대방동", "menu": "부타항정살 솥밥", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-17_%EB%8F%99%EC%96%91%EC%86%A5%EB%B0%A5_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-16", "restaurant": "도리장칼국수", "dong": "신대방동", "menu": "장칼국수 특, 미니 된장덮밥", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-16_%EB%8F%84%EB%A6%AC%EC%9E%A5%EC%B9%BC%EA%B5%AD%EC%88%98_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-15", "restaurant": "갓파도", "dong": "신대방동", "menu": "특선초밥 19000원", "category": "일식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-15_%EA%B0%93%ED%8C%8C%EB%8F%84_%EC%8A%A4%EC%8B%9C_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-11", "restaurant": "미청진 구로구청본점", "dong": "신대방동", "menu": "국밥, 이북만두", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-11_%EB%AF%B8%EC%B2%AD%EC%A7%84_%EA%B5%AC%EB%A1%9C%EA%B5%AC%EC%B2%AD%EB%B3%B8%EC%A0%90_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-10", "restaurant": "지미존스 보라매병원점", "dong": "신대방동", "menu": "빌리어쩌구?", "category": "양식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-10_%EC%A7%80%EB%AF%B8%EC%A1%B4%EC%8A%A4_%EB%B3%B4%EB%9D%BC%EB%A7%A4%EB%B3%91%EC%9B%90%EC%A0%90_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-09", "restaurant": "북창동순두부", "dong": "신대방동", "menu": "곱창순두부 불고기 정식", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-09_%EB%B6%81%EC%B0%BD%EB%8F%99%EC%88%9C%EB%91%90%EB%B6%80_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-08", "restaurant": "도리장칼국수", "dong": "신대방동", "menu": "장칼국수, 미니 된장밥", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-08_%EB%8F%84%EB%A6%AC%EC%9E%A5%EC%B9%BC%EA%B5%AD%EC%88%98_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-05", "restaurant": "스시모도리", "dong": "신대방동", "menu": "회전초밥 9접시?", "category": "일식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-05_%EC%8A%A4%EC%8B%9C%EB%AA%A8%EB%8F%84%EB%A6%AC_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-04", "restaurant": "본 비빔밥", "dong": "신대방동", "menu": "불낙비빔밥", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/%EB%B3%B8-%EB%B9%84%EB%B9%94%EB%B0%A5_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-02", "restaurant": "궁중 삼계탕", "dong": "신대방동", "menu": "한방삼계탕", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/%EA%B6%81%EC%A4%91-%EC%82%BC%EA%B3%84%ED%83%95_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-01", "restaurant": "백소정", "dong": "신대방동", "menu": "냉우동 가라아게 에비카츠", "category": "일식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/%EB%B0%B1%EC%86%8C%EC%A0%95_%EC%9D%8C%EC%8B%9D.jpeg"}];
   var CAT_COLORS = {"한식": "#2a78d6", "일식": "#eb6834", "양식": "#1baf7a", "중식": "#eda100", "기타": "#e87ba4"};
   var CAT_ORDER = ["한식", "일식", "양식", "중식"];
 
@@ -369,7 +425,8 @@
   var TODAY_ISO = iso(TODAY);
 
   var byDate = {};
-  POSTS.forEach(function (p) { (byDate[p.date] = byDate[p.date] || []).push(p); });
+  // _i는 POSTS 인덱스. 카드에 data-idx로 심어 상세보기에서 원본을 되찾는다.
+  POSTS.forEach(function (p, i) { p._i = i; (byDate[p.date] = byDate[p.date] || []).push(p); });
 
   // 첫 화면이 비어 보이지 않게: 이번 주(달)에 기록이 있으면 거기, 없으면 가장
   // 최근 기록이 있는 주(달)로 맞춘다. POSTS는 최신순이라 [0]이 최신이다.
@@ -416,11 +473,62 @@
   function catDot(cat) {
     return '<span class="dot" style="background:' + (CAT_COLORS[cat] || CAT_COLORS["기타"]) + '"></span>';
   }
-  function cardTip(p) {
-    return "<b>" + esc(p.restaurant) + "</b>" + (p.dong ? " · " + esc(p.dong) : "")
-      + "<br>" + esc(p.date) + " · " + esc(p.category)
-      + (p.menu ? "<br>🍜 " + esc(p.menu) : "")
-      + (p.review ? "<br>💬 " + esc(p.review) : "");
+  // ── 상세보기 ──
+  // 카드에는 툴팁을 달지 않고 이걸 띄운다. 같은 요소에 둘 다 두면 중복이고,
+  // 터치 기기에서 hover 툴팁은 아예 동작하지 않는다. 차트 쪽 툴팁은 그대로 둔다.
+  var detail = document.getElementById("detail");
+  var detailClose = document.getElementById("detail-close");
+  var lastFocus = null;
+
+  function openDetail(p) {
+    if (!p) return;
+    lastFocus = document.activeElement;
+    var d = parse(p.date);
+    document.getElementById("detail-when").textContent =
+      p.date + " (" + DOW[(d.getDay() + 6) % 7] + ")";
+    document.getElementById("detail-name").textContent = p.restaurant;
+    document.getElementById("detail-tags").innerHTML =
+      '<span class="chip">' + catDot(p.category) + esc(p.category) + "</span>"
+      + (p.dong ? '<span class="chip">📍 ' + esc(p.dong) + "</span>" : "");
+    document.getElementById("detail-menu").textContent = p.menu || "—";
+
+    var shot = document.getElementById("detail-shot");
+    if (p.photo) {
+      shot.src = p.photo;                       // 카드 배경으로 이미 받아둔 URL이라 캐시된다
+      shot.alt = p.restaurant + " " + (p.menu || "");
+      shot.hidden = false;
+    } else {
+      shot.removeAttribute("src");
+      shot.hidden = true;
+    }
+
+    hideTip();
+    detail.classList.add("on");
+    detailClose.focus();
+  }
+
+  function closeDetail() {
+    detail.classList.remove("on");
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+    lastFocus = null;
+  }
+  function detailOpen() { return detail.classList.contains("on"); }
+
+  detailClose.addEventListener("click", closeDetail);
+  // 배경(오버레이)만 눌렀을 때 닫는다. 내용 안을 누른 건 무시.
+  detail.addEventListener("click", function (e) { if (e.target === detail) closeDetail(); });
+
+  // 카드에 data-idx를 심어두고 위임으로 받는다. 매번 리스너를 붙이지 않아도 된다.
+  function bindOpeners(root) {
+    root.addEventListener("click", function (e) {
+      var el = e.target.closest("[data-idx]");
+      if (el) openDetail(POSTS[+el.getAttribute("data-idx")]);
+    });
+    root.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      var el = e.target.closest && e.target.closest("[data-idx]");
+      if (el) { e.preventDefault(); openDetail(POSTS[+el.getAttribute("data-idx")]); }
+    });
   }
 
   // ── 주간 ──
@@ -439,7 +547,9 @@
       if (!p) {
         html += '<div class="empty">기록 없음</div>';
       } else {
-        html += '<div class="body" data-tip="' + esc(cardTip(p)) + '" tabindex="0">';
+        html += '<div class="body openable" data-idx="' + p._i
+          + '" tabindex="0" role="button" aria-label="'
+          + esc(p.restaurant + " 자세히 보기") + '">';
         if (p.photo) {
           // asset_url(encode=True)이 이미 퍼센트 인코딩한 URL이다. 여기서 또
           // encodeURI를 걸면 '%'가 '%25'로 이중 인코딩돼 404가 난다.
@@ -449,7 +559,6 @@
           + '<span class="chip">' + catDot(p.category) + esc(p.category) + "</span>"
           + '<div class="rest">' + esc(p.restaurant) + "</div>"
           + (p.menu ? '<div class="menu">' + esc(p.menu) + "</div>" : "")
-          + (p.review ? '<div class="note">“' + esc(p.review) + '”</div>' : "")
           + "</div>";
         if (list.length > 1) {
           html += '<div class="meta" style="padding-top:0"><span class="chip">+' + (list.length - 1) + "건</span></div>";
@@ -459,7 +568,6 @@
       html += "</div>";
     }
     host.innerHTML = html;
-    bindTips(host);
     var end = addDays(state.week, 4);
     document.getElementById("range").textContent =
       (state.week.getMonth() + 1) + "월 " + state.week.getDate() + "일 – "
@@ -487,18 +595,19 @@
       html += '<div class="' + cls + '">';
       html += '<div class="n">' + day + "</div>";
       list.forEach(function (p) {
-        html += '<div class="mini" data-tip="' + esc(cardTip(p)) + '" tabindex="0">'
+        html += '<div class="mini openable" data-idx="' + p._i
+          + '" tabindex="0" role="button" aria-label="'
+          + esc(p.restaurant + " 자세히 보기") + '">'
           + catDot(p.category) + "<span>" + esc(p.restaurant) + "</span></div>";
         if (p.photo) {
-          html += '<div class="thumb" data-tip="' + esc(cardTip(p))
-            + '" style="background-image:url(\'' + esc(p.photo) + '\')"></div>';
+          html += '<div class="thumb openable" data-idx="' + p._i + '" aria-hidden="true"'
+            + ' style="background-image:url(\'' + esc(p.photo) + '\')"></div>';
         }
       });
       html += "</div>";
     }
     var cal = document.getElementById("cal");
     cal.innerHTML = html;
-    bindTips(cal);
     document.getElementById("range").textContent = y + "년 " + (m + 1) + "월";
   }
 
@@ -602,7 +711,7 @@
     document.getElementById("tbody").innerHTML = POSTS.map(function (p) {
       return "<tr><td class=\"num\">" + esc(p.date) + "</td><td>" + esc(p.restaurant)
         + "</td><td>" + esc(p.dong) + "</td><td>" + esc(p.category)
-        + '</td><td class="wide">' + esc(p.menu) + '</td><td class="wide">' + esc(p.review) + "</td></tr>";
+        + '</td><td class="wide">' + esc(p.menu) + "</td></tr>";
     }).join("");
   }
 
@@ -633,6 +742,12 @@
   }
   document.addEventListener("keydown", function (e) {
     if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+    // 상세보기가 열려 있으면 Esc로 닫고, 화살표로 뒤쪽 달력이 넘어가지 않게 막는다.
+    if (detailOpen()) {
+      if (e.key === "Escape") { e.preventDefault(); closeDetail(); }
+      else if (e.key === "ArrowLeft" || e.key === "ArrowRight") e.preventDefault();
+      return;
+    }
     if (e.key === "ArrowLeft") step(-1);
     else if (e.key === "ArrowRight") step(1);
   });
@@ -650,6 +765,10 @@
   document.getElementById("sub").textContent = POSTS.length
     ? POSTS[POSTS.length - 1].date + " – " + POSTS[0].date + " · 총 " + POSTS.length + "번"
     : "아직 기록이 없습니다.";
+
+  // 카드는 다시 그려지므로 컨테이너에 한 번만 위임해 둔다.
+  bindOpeners(document.getElementById("week-view"));
+  bindOpeners(document.getElementById("cal"));
 
   paint();
   renderStats();
