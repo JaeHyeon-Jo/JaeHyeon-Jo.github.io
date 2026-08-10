@@ -1,13 +1,10 @@
-.DS_Store
-.gitignore
-node_modules
-public
-prof
-tsconfig.tsbuildinfo
-.obsidian
-.quartz-cache
-private/
-.replit
-replit.nix
-.quartz/
-quartz/cli/tui/dist/
+# 보안: 볼트 안의 모든 개인 메모, 일기 등을 깃허브에서 무시합니다.
+*
+# 예외 1: 점심 기록과 이미지 폴더는 허용합니다.
+!컨설턴트점심메뉴/
+!컨설턴트점심메뉴/**
+
+# 예외 2: 깃허브 액션과 이 파일 자체는 허용합니다.
+!.github/
+!.github/**
+!.gitignore
