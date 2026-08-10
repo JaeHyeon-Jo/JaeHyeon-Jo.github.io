@@ -63,6 +63,21 @@
   .kpi-btn .more { color: var(--accent-to); font-weight: 600; margin-left: 4px; }
   .kpi .value { font-size: 1.9rem; font-weight: 650; letter-spacing: -.02em; }
   .kpi .value small { font-size: .9rem; font-weight: 500; color: var(--ink-3); margin-left: 2px; }
+  
+  /* ── PC 레이아웃 ── */
+  @media (min-width: 900px) {
+    .pc-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 5fr) minmax(0, 3fr);
+      gap: 30px;
+      align-items: start;
+      margin-top: 30px;
+    }
+  }
+  @media (max-width: 899px) {
+    .pc-side { margin-top: 30px; }
+    .pc-layout section:not(:first-child) { margin-top: 30px; }
+  }
 
   /* ── 섹션 ── */
   section { margin-top: 30px; }
@@ -324,86 +339,94 @@
     <p class="sub" id="sub"></p>
   </header>
 
-  <!-- 오늘 뭐 먹지 -->
-  <section>
-    <div class="card">
-      <div class="bar-row"><h2>🍽 오늘 뭐 먹지?</h2></div>
-      <div class="reco" style="align-items: flex-start;">
-        <div style="flex:1 1 260px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
-          <div>
-            <div class="pick" id="reco-name">—</div>
-            <div class="why" id="reco-why"></div>
+  <div class="pc-layout">
+    <!-- 메인 영역 (왼쪽) -->
+    <div class="pc-main">
+      <!-- 주간 / 월간 -->
+      <section style="margin-top: 0;">
+        <div class="bar-row">
+          <div class="seg" role="group" aria-label="보기 전환">
+            <button id="v-week" aria-pressed="true">주간</button>
+            <button id="v-month" aria-pressed="false">월간</button>
           </div>
-          <button class="cta" id="reco-again">다른 추천 🎲</button>
+          <div class="nav">
+            <button id="prev" aria-label="이전">‹</button>
+            <span class="range" id="range"></span>
+            <button id="next" aria-label="다음">›</button>
+            <button class="ghost" id="jump">오늘</button>
+          </div>
         </div>
-        <img id="reco-img" src="" alt="점심 사진" style="display: none; width: 100%; max-width: 240px; height: 160px; border-radius: 8px; object-fit: cover; flex-shrink: 0;">
+        <div id="week-view" class="week"></div>
+        <div id="month-view" class="card" hidden><div class="cal" id="cal"></div></div>
+      </section>
+
+      <!-- 요약 숫자는 본문을 먼저 보여주기 위해 하단으로 내렸다 (PC에선 메인 영역 하단) -->
+      <div class="kpis">
+        <div class="kpi"><div class="label">기록한 점심</div><div class="value">49<small>번</small></div></div>
+        <button class="kpi kpi-btn" id="kpi-restaurants" aria-haspopup="dialog">
+          <div class="label">가본 식당 <span class="more">목록 보기 ›</span></div>
+          <div class="value">34<small>곳</small></div>
+        </button>
+        <div class="kpi"><div class="label">두 번 이상 간 식당</div><div class="value">11<small>곳</small></div></div>
       </div>
     </div>
-  </section>
 
-  <!-- 주간 / 월간 -->
-  <section>
-    <div class="bar-row">
-      <div class="seg" role="group" aria-label="보기 전환">
-        <button id="v-week" aria-pressed="true">주간</button>
-        <button id="v-month" aria-pressed="false">월간</button>
-      </div>
-      <div class="nav">
-        <button id="prev" aria-label="이전">‹</button>
-        <span class="range" id="range"></span>
-        <button id="next" aria-label="다음">›</button>
-        <button class="ghost" id="jump">오늘</button>
-      </div>
-    </div>
-    <div id="week-view" class="week"></div>
-    <div id="month-view" class="card" hidden><div class="cal" id="cal"></div></div>
-  </section>
+    <!-- 사이드 영역 (오른쪽) -->
+    <div class="pc-side">
+      <!-- 오늘 뭐 먹지 -->
+      <section style="margin-top: 0;">
+        <div class="card">
+          <div class="bar-row"><h2>🍽 오늘 뭐 먹지?</h2></div>
+          <div class="reco" style="align-items: flex-start;">
+            <div style="flex:1 1 260px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
+              <div>
+                <div class="pick" id="reco-name">—</div>
+                <div class="why" id="reco-why"></div>
+              </div>
+              <button class="cta" id="reco-again">다른 추천 🎲</button>
+            </div>
+            <img id="reco-img" src="" alt="점심 사진" style="display: none; width: 100%; max-width: 240px; height: 160px; border-radius: 8px; object-fit: cover; flex-shrink: 0;">
+          </div>
+        </div>
+      </section>
 
-  <!-- 통계 — 필터 한 줄이 아래 두 차트를 함께 걸러낸다 -->
-  <section>
-    <div class="bar-row">
-      <h2>📊 무엇을 얼마나 먹었나</h2>
-      <div class="seg" role="group" aria-label="통계 기간">
-        <button id="r-all" aria-pressed="true">전체</button>
-        <button id="r-month" aria-pressed="false">이번 달</button>
-      </div>
-    </div>
-    <div class="card" style="margin-bottom:12px">
-      <h2 style="font-size:.92rem;color:var(--ink-2);font-weight:600">카테고리 분포</h2>
-      <div class="stack" id="stack"></div>
-      <div class="legend" id="legend"></div>
-    </div>
-    <div class="card">
-      <h2 style="font-size:.92rem;color:var(--ink-2);font-weight:600;margin-bottom:12px">자주 간 식당</h2>
-      <div class="rank" id="rank"></div>
-      <p class="hint" id="rank-hint"></p>
-    </div>
-  </section>
+      <!-- 통계 -->
+      <section>
+        <div class="bar-row">
+          <h2>📊 무엇을 얼마나 먹었나</h2>
+          <div class="seg" role="group" aria-label="통계 기간">
+            <button id="r-all" aria-pressed="true">전체</button>
+            <button id="r-month" aria-pressed="false">이번 달</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <h2 style="font-size:.92rem;color:var(--ink-2);font-weight:600">카테고리 분포</h2>
+          <div class="stack" id="stack"></div>
+          <div class="legend" id="legend"></div>
+        </div>
+        <div class="card">
+          <h2 style="font-size:.92rem;color:var(--ink-2);font-weight:600;margin-bottom:12px">자주 간 식당</h2>
+          <div class="rank" id="rank"></div>
+          <p class="hint" id="rank-hint"></p>
+        </div>
+      </section>
 
-  <!-- 표 보기 — 모든 값을 색 없이 읽을 수 있는 경로 -->
-  <details class="table">
-    <summary>전체 기록 표로 보기</summary>
-    <div class="tbl-scroll">
-      <table>
-        <thead><tr>
-          <th class="num">날짜</th><th>식당</th><th>지역</th><th>분류</th><th class="wide">메뉴</th>
-        </tr></thead>
-        <tbody id="tbody"></tbody>
-      </table>
+      <!-- 표 보기 -->
+      <details class="table" style="margin-top: 30px;">
+        <summary>전체 기록 표로 보기</summary>
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr>
+              <th class="num">날짜</th><th>식당</th><th>지역</th><th>분류</th><th class="wide">메뉴</th>
+            </tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </details>
     </div>
-  </details>
-
-  <!-- 요약 숫자는 본문을 먼저 보여주기 위해 하단으로 내렸다 -->
-  <div class="kpis">
-    <div class="kpi"><div class="label">기록한 점심</div><div class="value">49<small>번</small></div></div>
-    <button class="kpi kpi-btn" id="kpi-restaurants" aria-haspopup="dialog">
-      <div class="label">가본 식당 <span class="more">목록 보기 ›</span></div>
-      <div class="value">34<small>곳</small></div>
-    </button>
-    <div class="kpi"><div class="label">두 번 이상 간 식당</div><div class="value">11<small>곳</small></div></div>
   </div>
 
-  <footer>2026-08-10 14:23 기준 · 회사 점심 기록만 표시합니다</footer>
+  <footer>2026-08-10 19:26 기준 · 회사 점심 기록만 표시합니다</footer>
 </div>
 
 <div id="detail" class="dlg" role="dialog" aria-modal="true" aria-labelledby="detail-name">
