@@ -136,7 +136,7 @@
     width: 148px; height: 76px; flex: none; border-radius: 10px;
     background-size: cover; background-position: center; background-color: var(--page);
   }
-  .day .meta { min-width: 0; }
+  .day .meta { min-width: 0; flex: 1; }
   .day .rest { font-weight: 650; font-size: 1.02rem; letter-spacing: -.01em; }
   .day .menu { font-size: .86rem; color: var(--ink-2); margin-top: 2px; }
   .day .empty { flex: 1; display: flex; align-items: center; padding: 0 14px; color: var(--ink-3); font-size: .84rem; }
@@ -169,8 +169,7 @@
     font-size: .74rem; font-weight: 600; line-height: 1.3;
   }
   .cell .mini span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  /* 높이를 고정한다. flex:1로 두면 사진 있는 칸만 길어져 달력 줄이 들쭉날쭉해진다. */
-  .cell .thumb { width: 100%; flex: none; height: 40px; border-radius: 6px; background-size: cover; background-position: center; background-color: var(--page); }
+  /* 사진이 배경으로 들어가므로 기존 .thumb는 제거함 */
 
   /* ── 차트 ── */
   .stack { display: flex; gap: 2px; height: 24px; margin: 4px 0 14px; }
@@ -426,7 +425,7 @@
     </div>
   </div>
 
-  <footer>2026-08-10 19:26 기준 · 회사 점심 기록만 표시합니다</footer>
+  <footer>2026-08-10 19:32 기준 · 회사 점심 기록만 표시합니다</footer>
 </div>
 
 <div id="detail" class="dlg" role="dialog" aria-modal="true" aria-labelledby="detail-name">
@@ -666,16 +665,17 @@
         html += '<div class="body openable" data-idx="' + p._i
           + '" tabindex="0" role="button" aria-label="'
           + esc(p.restaurant + " 자세히 보기") + '">';
+        html += '<div class="meta">'
+          + '<span class="chip">' + catDot(p.category) + esc(p.category) + "</span>"
+          + '<div class="rest">' + esc(p.restaurant) + "</div>"
+          + (p.menu ? '<div class="menu">' + esc(p.menu) + "</div>" : "")
+          + "</div>";
         if (p.photo) {
           // asset_url(encode=True)이 이미 퍼센트 인코딩한 URL이다. 여기서 또
           // encodeURI를 걸면 '%'가 '%25'로 이중 인코딩돼 404가 난다.
           html += '<div class="shotimg" style="background-image:url(\'' + esc(p.photo) + '\')"></div>';
         }
-        html += '<div class="meta">'
-          + '<span class="chip">' + catDot(p.category) + esc(p.category) + "</span>"
-          + '<div class="rest">' + esc(p.restaurant) + "</div>"
-          + (p.menu ? '<div class="menu">' + esc(p.menu) + "</div>" : "")
-          + "</div></div>";
+        html += "</div>";
       }
       html += "</div>";
     });
@@ -703,17 +703,26 @@
       var list = byDate[key] || [];
       var wknd = d.getDay() === 0 || d.getDay() === 6;
       var cls = "cell" + (wknd ? " wknd" : "") + (key === TODAY_ISO ? " today" : "");
-      html += '<div class="' + cls + '">';
+      
+      var bgPhoto = "";
+      for (var k=0; k<list.length; k++) {
+        if (list[k].photo) { bgPhoto = list[k].photo; break; }
+      }
+      
+      var cellStyle = "";
+      if (bgPhoto) {
+        cls += " has-bg";
+        // 사진 위에 반투명 흰색 그라데이션을 깔아 글씨(검은색)가 보이도록 함
+        cellStyle = ' style="background-image: linear-gradient(rgba(255,255,255,0.65), rgba(255,255,255,0.9)), url(\'' + esc(bgPhoto) + '\'); background-size: cover; background-position: center;"';
+      }
+      
+      html += '<div class="' + cls + '"' + cellStyle + '>';
       html += '<div class="n">' + day + "</div>";
       list.forEach(function (p) {
         html += '<div class="mini openable" data-idx="' + p._i
           + '" tabindex="0" role="button" aria-label="'
           + esc(p.restaurant + " 자세히 보기") + '">'
           + catDot(p.category) + "<span>" + esc(p.restaurant) + "</span></div>";
-        if (p.photo) {
-          html += '<div class="thumb openable" data-idx="' + p._i + '" aria-hidden="true"'
-            + ' style="background-image:url(\'' + esc(p.photo) + '\')"></div>';
-        }
       });
       html += "</div>";
     }
