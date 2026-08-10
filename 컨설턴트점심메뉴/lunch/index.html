@@ -328,13 +328,15 @@
   <section>
     <div class="card">
       <div class="bar-row"><h2>🍽 오늘 뭐 먹지?</h2></div>
-      <div class="reco">
-        <div style="flex:1 1 260px">
-          <div class="pick" id="reco-name">—</div>
-          <div class="why" id="reco-why"></div>
-          <img id="reco-img" src="" alt="점심 사진" style="display: none; max-width: 100%; height: auto; max-height: 300px; margin-top: 10px; border-radius: 8px; object-fit: cover;">
+      <div class="reco" style="align-items: flex-start;">
+        <div style="flex:1 1 260px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
+          <div>
+            <div class="pick" id="reco-name">—</div>
+            <div class="why" id="reco-why"></div>
+          </div>
+          <button class="cta" id="reco-again">다른 추천 🎲</button>
         </div>
-        <button class="cta" id="reco-again">다른 추천 🎲</button>
+        <img id="reco-img" src="" alt="점심 사진" style="display: none; width: 100%; max-width: 240px; height: 160px; border-radius: 8px; object-fit: cover; flex-shrink: 0;">
       </div>
     </div>
   </section>
@@ -401,7 +403,7 @@
     <div class="kpi"><div class="label">두 번 이상 간 식당</div><div class="value">11<small>곳</small></div></div>
   </div>
 
-  <footer>2026-08-10 14:21 기준 · 회사 점심 기록만 표시합니다</footer>
+  <footer>2026-08-10 14:23 기준 · 회사 점심 기록만 표시합니다</footer>
 </div>
 
 <div id="detail" class="dlg" role="dialog" aria-modal="true" aria-labelledby="detail-name">
