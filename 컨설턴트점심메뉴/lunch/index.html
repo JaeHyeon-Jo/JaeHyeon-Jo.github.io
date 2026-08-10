@@ -136,7 +136,7 @@
     width: 148px; height: 76px; flex: none; border-radius: 10px;
     background-size: cover; background-position: center; background-color: var(--page);
   }
-  .day .meta { min-width: 0; flex: 1; }
+  .day .meta { min-width: 0; }
   .day .rest { font-weight: 650; font-size: 1.02rem; letter-spacing: -.01em; }
   .day .menu { font-size: .86rem; color: var(--ink-2); margin-top: 2px; }
   .day .empty { flex: 1; display: flex; align-items: center; padding: 0 14px; color: var(--ink-3); font-size: .84rem; }
@@ -427,7 +427,7 @@
     </div>
   </div>
 
-  <footer>2026-08-10 19:35 기준 · 회사 점심 기록만 표시합니다</footer>
+  <footer>2026-08-10 20:03 기준 · 회사 점심 기록만 표시합니다</footer>
 </div>
 
 <div id="detail" class="dlg" role="dialog" aria-modal="true" aria-labelledby="detail-name">
@@ -714,8 +714,8 @@
       var cellStyle = "";
       if (bgPhoto) {
         cls += " has-bg";
-        // 사진을 진하게 보이게 하기 위해 어두운 반투명 그라데이션을 깐다
-        cellStyle = ' style="background-image: linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.7)), url(\'' + esc(bgPhoto) + '\'); background-size: cover; background-position: center;"';
+        // 사진을 진하게 보이게 하기 위해 어두운 반투명 그라데이션을 깐다 (너무 어둡지 않게 0.25 ~ 0.5 수준으로)
+        cellStyle = ' style="background-image: linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.5)), url(\'' + esc(bgPhoto) + '\'); background-size: cover; background-position: center;"';
       }
       
       html += '<div class="' + cls + '"' + cellStyle + '>';
