@@ -332,6 +332,7 @@
         <div style="flex:1 1 260px">
           <div class="pick" id="reco-name">—</div>
           <div class="why" id="reco-why"></div>
+          <img id="reco-img" src="" alt="점심 사진" style="display: none; max-width: 100%; height: auto; max-height: 300px; margin-top: 10px; border-radius: 8px; object-fit: cover;">
         </div>
         <button class="cta" id="reco-again">다른 추천 🎲</button>
       </div>
@@ -400,7 +401,7 @@
     <div class="kpi"><div class="label">두 번 이상 간 식당</div><div class="value">11<small>곳</small></div></div>
   </div>
 
-  <footer>2026-08-10 14:14 기준 · 회사 점심 기록만 표시합니다</footer>
+  <footer>2026-08-10 14:21 기준 · 회사 점심 기록만 표시합니다</footer>
 </div>
 
 <div id="detail" class="dlg" role="dialog" aria-modal="true" aria-labelledby="detail-name">
@@ -767,13 +768,26 @@
   function renderReco() {
     var nameEl = document.getElementById("reco-name");
     var whyEl = document.getElementById("reco-why");
+    var imgEl = document.getElementById("reco-img");
+    
+    // 이미지 초기화
+    if (imgEl) {
+      imgEl.style.display = "none";
+      imgEl.src = "";
+    }
     
     // 오늘 기록이 있다면 무조건 오늘 간 식당을 띄운다
     var todaysPosts = byDate[TODAY_ISO];
     if (todaysPosts && todaysPosts.length > 0) {
-      nameEl.textContent = todaysPosts[0].restaurant;
+      var post = todaysPosts[0];
+      nameEl.textContent = post.restaurant;
       whyEl.textContent = "오늘은 이곳에서 점심을 드셨군요! 😋";
       document.getElementById("reco-again").style.display = "none";
+      
+      if (imgEl && post.photo) {
+        imgEl.src = post.photo;
+        imgEl.style.display = "block";
+      }
       return;
     }
     
@@ -801,6 +815,19 @@
     }
     nameEl.textContent = pick;
     whyEl.textContent = why;
+    
+    // 랜덤 추천 시에도 해당 식당의 가장 최신 사진을 찾아 띄워준다
+    var latestPhoto = null;
+    for (var i = 0; i < POSTS.length; i++) {
+      if (POSTS[i].restaurant === pick && POSTS[i].photo) {
+        latestPhoto = POSTS[i].photo;
+        break; // POSTS는 최신순이므로 첫 번째가 가장 최신
+      }
+    }
+    if (imgEl && latestPhoto) {
+      imgEl.src = latestPhoto;
+      imgEl.style.display = "block";
+    }
   }
 
   // ── 표 ──
