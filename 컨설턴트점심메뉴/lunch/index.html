@@ -169,7 +169,8 @@
     font-size: .74rem; font-weight: 600; line-height: 1.3;
   }
   .cell .mini span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  /* 사진이 배경으로 들어갈 때 텍스트 색상 밝게 처리 */
+  /* 사진이 배경으로 들어갈 때 텍스트 색상 밝게 처리 및 z-index 부여 (오버레이 위로) */
+  .cell.has-bg .n, .cell.has-bg .mini { position: relative; z-index: 1; }
   .cell.has-bg .n { color: rgba(255, 255, 255, 0.9); text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
   .cell.has-bg .mini span { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
 
@@ -427,7 +428,7 @@
     </div>
   </div>
 
-  <footer>2026-08-10 20:03 기준 · 회사 점심 기록만 표시합니다</footer>
+  <footer>2026-08-10 20:06 기준 · 회사 점심 기록만 표시합니다</footer>
 </div>
 
 <div id="detail" class="dlg" role="dialog" aria-modal="true" aria-labelledby="detail-name">
@@ -712,13 +713,17 @@
       }
       
       var cellStyle = "";
+      var overlayHtml = "";
       if (bgPhoto) {
         cls += " has-bg";
-        // 사진을 진하게 보이게 하기 위해 어두운 반투명 그라데이션을 깐다 (너무 어둡지 않게 0.25 ~ 0.5 수준으로)
-        cellStyle = ' style="background-image: linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.5)), url(\'' + esc(bgPhoto) + '\'); background-size: cover; background-position: center;"';
+        // .cell의 부모에 relative 설정 후 오버레이 추가
+        cellStyle = ' style="position: relative;"';
+        overlayHtml = '<div style="position: absolute; inset: 0; background-image: url(\'' + esc(bgPhoto) + '\'); background-size: cover; background-position: center; z-index: 0; border-radius: inherit;"></div>'
+                    + '<div style="position: absolute; inset: 0; background: linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.5)); z-index: 0; border-radius: inherit;"></div>';
       }
       
       html += '<div class="' + cls + '"' + cellStyle + '>';
+      if (overlayHtml) html += overlayHtml;
       html += '<div class="n">' + day + "</div>";
       list.forEach(function (p) {
         html += '<div class="mini openable" data-idx="' + p._i
