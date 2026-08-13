@@ -203,6 +203,22 @@
     background: linear-gradient(95deg, var(--accent-from), var(--accent-to));
   }
   .reco .cta:hover { filter: brightness(1.05); }
+  .reco-reason {
+    margin: 0 0 14px; font-size: .9rem; color: var(--ink-2);
+    padding-left: 10px; border-left: 3px solid var(--accent-from);
+  }
+  .reco-label {
+    font-size: .72rem; font-weight: 700; letter-spacing: .04em;
+    color: var(--ink-3); text-transform: uppercase; margin-bottom: 2px;
+  }
+  .reco-new {
+    margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--hairline);
+    display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  }
+  .reco-new .nm { font-size: 1.05rem; font-weight: 700; }
+  .reco-new a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--ink-3); }
+  .reco-new a:hover { border-bottom-color: currentColor; }
+  .reco-new .meta { font-size: .82rem; color: var(--ink-3); }
 
   /* ── 표 ── */
   details.table { margin-top: 30px; }
@@ -379,15 +395,22 @@
       <section style="margin-top: 0;">
         <div class="card">
           <div class="bar-row"><h2>🍽 오늘 뭐 먹지?</h2></div>
+          <p class="reco-reason" id="reco-reason" hidden></p>
           <div class="reco" style="align-items: flex-start;">
             <div style="flex:1 1 260px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
               <div>
+                <div class="reco-label" id="reco-label" hidden>단골 중에선</div>
                 <div class="pick" id="reco-name">—</div>
                 <div class="why" id="reco-why"></div>
               </div>
               <button class="cta" id="reco-again">다른 추천 🎲</button>
             </div>
             <img id="reco-img" src="" alt="점심 사진" style="display: none; width: 100%; max-width: 240px; height: 160px; border-radius: 8px; object-fit: cover; flex-shrink: 0;">
+          </div>
+          <div class="reco-new" id="reco-new" hidden>
+            <span class="reco-label" style="margin:0">새로운 곳은</span>
+            <span class="nm"><a id="reco-new-link" target="_blank" rel="noopener noreferrer"></a></span>
+            <span class="meta" id="reco-new-meta"></span>
           </div>
         </div>
       </section>
@@ -428,7 +451,7 @@
     </div>
   </div>
 
-  <footer>2026-08-13 16:54 기준 · 회사 점심 기록만 표시합니다</footer>
+  <footer>2026-08-13 17:33 기준 · 회사 점심 기록만 표시합니다</footer>
 </div>
 
 <div id="detail" class="dlg" role="dialog" aria-modal="true" aria-labelledby="detail-name">
@@ -461,9 +484,14 @@
 (function () {
   "use strict";
 
-  var POSTS = [{"date": "2026-08-13", "restaurant": "도리장칼국수", "dong": "신대방동", "menu": "장칼국수 곱배기", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-08-13_%EB%8F%84%EB%A6%AC%EC%9E%A5%EC%B9%BC%EA%B5%AD%EC%88%98_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-08-12", "restaurant": "북창동순두부 보라매타운점", "dong": "신대방동", "menu": "곱창순두부", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-08-12_%EB%B6%81%EC%B0%BD%EB%8F%99%EC%88%9C%EB%91%90%EB%B6%80_%EB%B3%B4%EB%9D%BC%EB%A7%A4%ED%83%80%EC%9A%B4%EC%A0%90_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-08-11", "restaurant": "아비꼬", "dong": "신대방동", "menu": "돈까스 카레 우동", "category": "일식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-08-11_%EC%95%84%EB%B9%84%EA%BC%AC_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-08-10", "restaurant": "칠리부대찌개&스테이크", "dong": "신대방동", "menu": "칠리부대찌개", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-08-10_%EC%B9%A0%EB%A6%AC%EB%B6%80%EB%8C%80%EC%B0%8C%EA%B0%9C%26%EC%8A%A4%ED%85%8C%EC%9D%B4%ED%81%AC_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-08-07", "restaurant": "울엄마쌈밥", "dong": "", "menu": "", "category": "한식", "photo": ""}, {"date": "2026-08-06", "restaurant": "신야텐야", "dong": "", "menu": "", "category": "한식", "photo": ""}, {"date": "2026-08-05", "restaurant": "홍콩반점", "dong": "", "menu": "쟁반짜장", "category": "중식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-08-05_%ED%99%8D%EC%BD%A9%EB%B0%98%EC%A0%90_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-08-04", "restaurant": "갓파도", "dong": "신대방동", "menu": "특선초밥", "category": "일식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-08-05_%EA%B0%93%ED%8C%8C%EB%8F%84_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-08-03", "restaurant": "서평면옥", "dong": "", "menu": "", "category": "한식", "photo": ""}, {"date": "2026-07-30", "restaurant": "대구일색 보라매공원점", "dong": "신대방동", "menu": "맑은탕", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-30_%EB%8C%80%EA%B5%AC%EC%9D%BC%EC%83%89_%EB%B3%B4%EB%9D%BC%EB%A7%A4%EA%B3%B5%EC%9B%90%EC%A0%90_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-29", "restaurant": "동양솥밥", "dong": "신대방동", "menu": "동파육덮밥", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-29_%EB%8F%99%EC%96%91%EC%86%A5%EB%B0%A5_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-28", "restaurant": "보라매궁중삼계탕", "dong": "신대방동", "menu": "한방 삼계탕", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-28_%EB%B3%B4%EB%9D%BC%EB%A7%A4%EA%B6%81%EC%A4%91%EC%82%BC%EA%B3%84%ED%83%95_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-27", "restaurant": "아비꼬", "dong": "신대방동", "menu": "정식 A (돈육카레, 가라아게2점, 우동)", "category": "일식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-27_%EC%95%84%EB%B9%84%EA%BC%AC_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-22", "restaurant": "동양솥밥 보라매병원역점", "dong": "서울 동작구 보라매로5가길 16", "menu": "", "category": "한식", "photo": ""}, {"date": "2026-07-21", "restaurant": "도리장칼국수", "dong": "신대방동", "menu": "장칼국수 + 감자전", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-21_%EB%8F%84%EB%A6%AC%EC%9E%A5%EC%B9%BC%EA%B5%AD%EC%88%98_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-16", "restaurant": "서평면옥", "dong": "신대방동", "menu": "평양냉면 만두 세트", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-16_%EC%84%9C%ED%8F%89%EB%A9%B4%EC%98%A5_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-09", "restaurant": "본죽&비빔밥cafe 보라매점", "dong": "신대방동", "menu": "제육비빔밥 돌솥 변경", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-09_%EB%B3%B8%EC%A3%BD%26%EB%B9%84%EB%B9%94%EB%B0%A5cafe_%EB%B3%B4%EB%9D%BC%EB%A7%A4%EC%A0%90_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-02", "restaurant": "도리장칼국수", "dong": "서울 동작구 보라매로5길 43", "menu": "장칼국수", "category": "한식", "photo": ""}, {"date": "2026-06-30", "restaurant": "갓파도", "dong": "신대방동", "menu": "돈까스 정식", "category": "일식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-30_%EA%B0%93%ED%8C%8C%EB%8F%84_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-29", "restaurant": "허수아비돈까스", "dong": "서울 서초구 반포대로 16", "menu": "돈까스", "category": "일식", "photo": ""}, {"date": "2026-06-24", "restaurant": "북창동순두부", "dong": "신대방동", "menu": "2인 실속 메뉴 소곱창 옵션 변경", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-24_%EB%B6%81%EC%B0%BD%EB%8F%99%EC%88%9C%EB%91%90%EB%B6%80_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-23", "restaurant": "차이30", "dong": "신대방동", "menu": "차이짜장", "category": "중식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-23_%EC%B0%A8%EC%9D%B430_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-22", "restaurant": "청가맛", "dong": "신대방동", "menu": "돼지고추장찌개", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-22_%EC%B2%AD%EA%B0%80%EB%A7%9B_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-18", "restaurant": "포메인보라매점", "dong": "", "menu": "", "category": "기타", "photo": ""}, {"date": "2026-06-17", "restaurant": "동양솥밥", "dong": "신대방동", "menu": "부타항정살 솥밥", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-17_%EB%8F%99%EC%96%91%EC%86%A5%EB%B0%A5_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-16", "restaurant": "도리장칼국수", "dong": "신대방동", "menu": "장칼국수 특, 미니 된장덮밥", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-16_%EB%8F%84%EB%A6%AC%EC%9E%A5%EC%B9%BC%EA%B5%AD%EC%88%98_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-15", "restaurant": "갓파도", "dong": "신대방동", "menu": "특선초밥 19000원", "category": "일식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-15_%EA%B0%93%ED%8C%8C%EB%8F%84_%EC%8A%A4%EC%8B%9C_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-11", "restaurant": "미청진 구로구청본점", "dong": "신대방동", "menu": "국밥, 이북만두", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-11_%EB%AF%B8%EC%B2%AD%EC%A7%84_%EA%B5%AC%EB%A1%9C%EA%B5%AC%EC%B2%AD%EB%B3%B8%EC%A0%90_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-10", "restaurant": "지미존스 보라매병원점", "dong": "신대방동", "menu": "빌리어쩌구?", "category": "양식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-10_%EC%A7%80%EB%AF%B8%EC%A1%B4%EC%8A%A4_%EB%B3%B4%EB%9D%BC%EB%A7%A4%EB%B3%91%EC%9B%90%EC%A0%90_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-09", "restaurant": "북창동순두부", "dong": "신대방동", "menu": "곱창순두부 불고기 정식", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-09_%EB%B6%81%EC%B0%BD%EB%8F%99%EC%88%9C%EB%91%90%EB%B6%80_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-08", "restaurant": "도리장칼국수", "dong": "신대방동", "menu": "장칼국수, 미니 된장밥", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-08_%EB%8F%84%EB%A6%AC%EC%9E%A5%EC%B9%BC%EA%B5%AD%EC%88%98_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-05", "restaurant": "스시모도리", "dong": "신대방동", "menu": "회전초밥 9접시?", "category": "일식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-05_%EC%8A%A4%EC%8B%9C%EB%AA%A8%EB%8F%84%EB%A6%AC_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-04", "restaurant": "본 비빔밥", "dong": "신대방동", "menu": "불낙비빔밥", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/%EB%B3%B8%20%EB%B9%84%EB%B9%94%EB%B0%A5_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-02", "restaurant": "궁중 삼계탕", "dong": "신대방동", "menu": "한방삼계탕", "category": "한식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/%EA%B6%81%EC%A4%91%20%EC%82%BC%EA%B3%84%ED%83%95_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-01", "restaurant": "백소정", "dong": "신대방동", "menu": "냉우동 가라아게 에비카츠", "category": "일식", "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/%EB%B0%B1%EC%86%8C%EC%A0%95_%EC%9D%8C%EC%8B%9D.jpeg"}, {"date": "2026-05-28", "restaurant": "느루집", "dong": "서울 영등포구 당산로 34", "menu": "", "category": "한식", "photo": ""}, {"date": "2026-05-08", "restaurant": "칠리부대찌개＆스테이", "dong": "", "menu": "칠리부대찌개", "category": "기타", "photo": ""}, {"date": "2026-05-06", "restaurant": "허수아비돈까스", "dong": "서울 서초구 반포대로 16", "menu": "", "category": "일식", "photo": ""}, {"date": "2026-04-30", "restaurant": "본설렁탕 보라매공원점", "dong": "서울 동작구 보라매로5가길 16", "menu": "", "category": "한식", "photo": ""}, {"date": "2026-04-29", "restaurant": "여의도수제비", "dong": "서울 동작구 보라매로3길 29", "menu": "", "category": "한식", "photo": ""}, {"date": "2026-04-28", "restaurant": "북창동순두부 보라매타운점", "dong": "서울 동작구 보라매로5가길 16", "menu": "", "category": "한식", "photo": ""}, {"date": "2026-04-27", "restaurant": "동양솥밥 보라매병원역점", "dong": "서울 동작구 보라매로5가길 16", "menu": "", "category": "한식", "photo": ""}, {"date": "2026-04-21", "restaurant": "울엄마쌈밥", "dong": "서울 동작구 보라매로5길 15", "menu": "", "category": "한식", "photo": ""}, {"date": "2026-04-20", "restaurant": "꼬리야", "dong": "서울 동작구 보라매로5길 15", "menu": "", "category": "한식", "photo": ""}, {"date": "2026-04-15", "restaurant": "북창동순두부 보라매타운점", "dong": "서울 동작구 보라매로5가길 16", "menu": "", "category": "한식", "photo": ""}, {"date": "2026-04-14", "restaurant": "스시모도리", "dong": "서울 관악구 봉천로 217", "menu": "", "category": "일식", "photo": ""}, {"date": "2026-03-30", "restaurant": "가마솥 순대국밥 보", "dong": "", "menu": "", "category": "기타", "photo": ""}, {"date": "2026-03-26", "restaurant": "원할머니보쌈 보라매점", "dong": "서울 동작구 보라매로5가길 16", "menu": "", "category": "한식", "photo": ""}, {"date": "2026-03-25", "restaurant": "신안산낙지", "dong": "서울 관악구 봉천로 213-20", "menu": "", "category": "한식", "photo": ""}, {"date": "2026-03-23", "restaurant": "청가맛", "dong": "서울 동작구 보라매로5길 15", "menu": "", "category": "한식", "photo": ""}, {"date": "2026-03-18", "restaurant": "북창동순두부 보라매타운점", "dong": "서울 동작구 보라매로5가길 16", "menu": "", "category": "한식", "photo": ""}, {"date": "2026-03-17", "restaurant": "순남시래기 명동직영점", "dong": "서울 중구 명동10길 35-20", "menu": "", "category": "한식", "photo": ""}];
+  var POSTS = [{"date": "2026-08-13", "restaurant": "도리장칼국수", "dong": "신대방동", "menu": "장칼국수 곱배기", "category": "한식", "tags": ["#국물", "#밀가루"], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-08-13_%EB%8F%84%EB%A6%AC%EC%9E%A5%EC%B9%BC%EA%B5%AD%EC%88%98_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-08-12", "restaurant": "북창동순두부 보라매타운점", "dong": "신대방동", "menu": "곱창순두부", "category": "한식", "tags": ["#육류", "#국물"], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-08-12_%EB%B6%81%EC%B0%BD%EB%8F%99%EC%88%9C%EB%91%90%EB%B6%80_%EB%B3%B4%EB%9D%BC%EB%A7%A4%ED%83%80%EC%9A%B4%EC%A0%90_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-08-11", "restaurant": "아비꼬", "dong": "신대방동", "menu": "돈까스 카레 우동", "category": "일식", "tags": ["#육류", "#국물", "#밀가루"], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-08-11_%EC%95%84%EB%B9%84%EA%BC%AC_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-08-10", "restaurant": "칠리부대찌개&스테이크", "dong": "신대방동", "menu": "칠리부대찌개", "category": "한식", "tags": ["#국물"], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-08-10_%EC%B9%A0%EB%A6%AC%EB%B6%80%EB%8C%80%EC%B0%8C%EA%B0%9C%26%EC%8A%A4%ED%85%8C%EC%9D%B4%ED%81%AC_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-08-07", "restaurant": "울엄마쌈밥", "dong": "", "menu": "", "category": "한식", "tags": [], "photo": ""}, {"date": "2026-08-06", "restaurant": "신야텐야", "dong": "", "menu": "", "category": "한식", "tags": [], "photo": ""}, {"date": "2026-08-05", "restaurant": "홍콩반점", "dong": "", "menu": "쟁반짜장", "category": "중식", "tags": [], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-08-05_%ED%99%8D%EC%BD%A9%EB%B0%98%EC%A0%90_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-08-04", "restaurant": "갓파도", "dong": "신대방동", "menu": "특선초밥", "category": "일식", "tags": ["#해산물"], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-08-05_%EA%B0%93%ED%8C%8C%EB%8F%84_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-08-03", "restaurant": "서평면옥", "dong": "", "menu": "", "category": "한식", "tags": [], "photo": ""}, {"date": "2026-07-30", "restaurant": "대구일색 보라매공원점", "dong": "신대방동", "menu": "맑은탕", "category": "한식", "tags": ["#국물"], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-30_%EB%8C%80%EA%B5%AC%EC%9D%BC%EC%83%89_%EB%B3%B4%EB%9D%BC%EB%A7%A4%EA%B3%B5%EC%9B%90%EC%A0%90_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-29", "restaurant": "동양솥밥", "dong": "신대방동", "menu": "동파육덮밥", "category": "한식", "tags": [], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-29_%EB%8F%99%EC%96%91%EC%86%A5%EB%B0%A5_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-28", "restaurant": "보라매궁중삼계탕", "dong": "신대방동", "menu": "한방 삼계탕", "category": "한식", "tags": ["#국물"], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-28_%EB%B3%B4%EB%9D%BC%EB%A7%A4%EA%B6%81%EC%A4%91%EC%82%BC%EA%B3%84%ED%83%95_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-27", "restaurant": "아비꼬", "dong": "신대방동", "menu": "정식 A (돈육카레, 가라아게2점, 우동)", "category": "일식", "tags": ["#국물", "#밀가루"], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-27_%EC%95%84%EB%B9%84%EA%BC%AC_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-22", "restaurant": "동양솥밥 보라매병원역점", "dong": "서울 동작구 보라매로5가길 16", "menu": "", "category": "한식", "tags": [], "photo": ""}, {"date": "2026-07-21", "restaurant": "도리장칼국수", "dong": "신대방동", "menu": "장칼국수 + 감자전", "category": "한식", "tags": ["#국물", "#밀가루"], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-21_%EB%8F%84%EB%A6%AC%EC%9E%A5%EC%B9%BC%EA%B5%AD%EC%88%98_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-16", "restaurant": "서평면옥", "dong": "신대방동", "menu": "평양냉면 만두 세트", "category": "한식", "tags": ["#밀가루"], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-16_%EC%84%9C%ED%8F%89%EB%A9%B4%EC%98%A5_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-09", "restaurant": "본죽&비빔밥cafe 보라매점", "dong": "신대방동", "menu": "제육비빔밥 돌솥 변경", "category": "한식", "tags": ["#육류", "#라이트함"], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-07-09_%EB%B3%B8%EC%A3%BD%26%EB%B9%84%EB%B9%94%EB%B0%A5cafe_%EB%B3%B4%EB%9D%BC%EB%A7%A4%EC%A0%90_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-07-02", "restaurant": "도리장칼국수", "dong": "서울 동작구 보라매로5길 43", "menu": "장칼국수", "category": "한식", "tags": ["#국물", "#밀가루"], "photo": ""}, {"date": "2026-06-30", "restaurant": "갓파도", "dong": "신대방동", "menu": "돈까스 정식", "category": "일식", "tags": ["#육류", "#밀가루"], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-30_%EA%B0%93%ED%8C%8C%EB%8F%84_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-29", "restaurant": "허수아비돈까스", "dong": "서울 서초구 반포대로 16", "menu": "돈까스", "category": "일식", "tags": ["#육류", "#밀가루"], "photo": ""}, {"date": "2026-06-24", "restaurant": "북창동순두부", "dong": "신대방동", "menu": "2인 실속 메뉴 소곱창 옵션 변경", "category": "한식", "tags": ["#육류"], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-24_%EB%B6%81%EC%B0%BD%EB%8F%99%EC%88%9C%EB%91%90%EB%B6%80_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-23", "restaurant": "차이30", "dong": "신대방동", "menu": "차이짜장", "category": "중식", "tags": [], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-23_%EC%B0%A8%EC%9D%B430_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-22", "restaurant": "청가맛", "dong": "신대방동", "menu": "돼지고추장찌개", "category": "한식", "tags": ["#육류", "#국물"], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-22_%EC%B2%AD%EA%B0%80%EB%A7%9B_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-18", "restaurant": "포메인보라매점", "dong": "", "menu": "", "category": "기타", "tags": [], "photo": ""}, {"date": "2026-06-17", "restaurant": "동양솥밥", "dong": "신대방동", "menu": "부타항정살 솥밥", "category": "한식", "tags": [], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-17_%EB%8F%99%EC%96%91%EC%86%A5%EB%B0%A5_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-16", "restaurant": "도리장칼국수", "dong": "신대방동", "menu": "장칼국수 특, 미니 된장덮밥", "category": "한식", "tags": ["#국물", "#밀가루"], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-16_%EB%8F%84%EB%A6%AC%EC%9E%A5%EC%B9%BC%EA%B5%AD%EC%88%98_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-15", "restaurant": "갓파도", "dong": "신대방동", "menu": "특선초밥 19000원", "category": "일식", "tags": ["#해산물"], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-15_%EA%B0%93%ED%8C%8C%EB%8F%84_%EC%8A%A4%EC%8B%9C_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-11", "restaurant": "미청진 구로구청본점", "dong": "신대방동", "menu": "국밥, 이북만두", "category": "한식", "tags": ["#국물", "#밀가루"], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-11_%EB%AF%B8%EC%B2%AD%EC%A7%84_%EA%B5%AC%EB%A1%9C%EA%B5%AC%EC%B2%AD%EB%B3%B8%EC%A0%90_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-10", "restaurant": "지미존스 보라매병원점", "dong": "신대방동", "menu": "빌리어쩌구?", "category": "양식", "tags": [], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-10_%EC%A7%80%EB%AF%B8%EC%A1%B4%EC%8A%A4_%EB%B3%B4%EB%9D%BC%EB%A7%A4%EB%B3%91%EC%9B%90%EC%A0%90_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-09", "restaurant": "북창동순두부", "dong": "신대방동", "menu": "곱창순두부 불고기 정식", "category": "한식", "tags": ["#육류", "#국물"], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-09_%EB%B6%81%EC%B0%BD%EB%8F%99%EC%88%9C%EB%91%90%EB%B6%80_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-08", "restaurant": "도리장칼국수", "dong": "신대방동", "menu": "장칼국수, 미니 된장밥", "category": "한식", "tags": ["#국물", "#밀가루"], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-08_%EB%8F%84%EB%A6%AC%EC%9E%A5%EC%B9%BC%EA%B5%AD%EC%88%98_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-05", "restaurant": "스시모도리", "dong": "신대방동", "menu": "회전초밥 9접시?", "category": "일식", "tags": ["#해산물"], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/2026-06-05_%EC%8A%A4%EC%8B%9C%EB%AA%A8%EB%8F%84%EB%A6%AC_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-04", "restaurant": "본 비빔밥", "dong": "신대방동", "menu": "불낙비빔밥", "category": "한식", "tags": ["#라이트함"], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/%EB%B3%B8%20%EB%B9%84%EB%B9%94%EB%B0%A5_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-02", "restaurant": "궁중 삼계탕", "dong": "신대방동", "menu": "한방삼계탕", "category": "한식", "tags": ["#국물"], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/%EA%B6%81%EC%A4%91%20%EC%82%BC%EA%B3%84%ED%83%95_%EC%9D%8C%EC%8B%9D_1.jpeg"}, {"date": "2026-06-01", "restaurant": "백소정", "dong": "신대방동", "menu": "냉우동 가라아게 에비카츠", "category": "일식", "tags": ["#국물", "#밀가루"], "photo": "https://jaehyeon-jo.github.io/%EC%A0%90%EC%8B%AC%EB%A9%94%EB%89%B4/%EB%B0%B1%EC%86%8C%EC%A0%95_%EC%9D%8C%EC%8B%9D.jpeg"}, {"date": "2026-05-28", "restaurant": "느루집", "dong": "서울 영등포구 당산로 34", "menu": "", "category": "한식", "tags": [], "photo": ""}, {"date": "2026-05-08", "restaurant": "칠리부대찌개＆스테이", "dong": "", "menu": "칠리부대찌개", "category": "기타", "tags": ["#국물"], "photo": ""}, {"date": "2026-05-06", "restaurant": "허수아비돈까스", "dong": "서울 서초구 반포대로 16", "menu": "", "category": "일식", "tags": [], "photo": ""}, {"date": "2026-04-30", "restaurant": "본설렁탕 보라매공원점", "dong": "서울 동작구 보라매로5가길 16", "menu": "", "category": "한식", "tags": [], "photo": ""}, {"date": "2026-04-29", "restaurant": "여의도수제비", "dong": "서울 동작구 보라매로3길 29", "menu": "", "category": "한식", "tags": [], "photo": ""}, {"date": "2026-04-28", "restaurant": "북창동순두부 보라매타운점", "dong": "서울 동작구 보라매로5가길 16", "menu": "", "category": "한식", "tags": [], "photo": ""}, {"date": "2026-04-27", "restaurant": "동양솥밥 보라매병원역점", "dong": "서울 동작구 보라매로5가길 16", "menu": "", "category": "한식", "tags": [], "photo": ""}, {"date": "2026-04-21", "restaurant": "울엄마쌈밥", "dong": "서울 동작구 보라매로5길 15", "menu": "", "category": "한식", "tags": [], "photo": ""}, {"date": "2026-04-20", "restaurant": "꼬리야", "dong": "서울 동작구 보라매로5길 15", "menu": "", "category": "한식", "tags": [], "photo": ""}, {"date": "2026-04-15", "restaurant": "북창동순두부 보라매타운점", "dong": "서울 동작구 보라매로5가길 16", "menu": "", "category": "한식", "tags": [], "photo": ""}, {"date": "2026-04-14", "restaurant": "스시모도리", "dong": "서울 관악구 봉천로 217", "menu": "", "category": "일식", "tags": [], "photo": ""}, {"date": "2026-03-30", "restaurant": "가마솥 순대국밥 보", "dong": "", "menu": "", "category": "기타", "tags": [], "photo": ""}, {"date": "2026-03-26", "restaurant": "원할머니보쌈 보라매점", "dong": "서울 동작구 보라매로5가길 16", "menu": "", "category": "한식", "tags": [], "photo": ""}, {"date": "2026-03-25", "restaurant": "신안산낙지", "dong": "서울 관악구 봉천로 213-20", "menu": "", "category": "한식", "tags": [], "photo": ""}, {"date": "2026-03-23", "restaurant": "청가맛", "dong": "서울 동작구 보라매로5길 15", "menu": "", "category": "한식", "tags": [], "photo": ""}, {"date": "2026-03-18", "restaurant": "북창동순두부 보라매타운점", "dong": "서울 동작구 보라매로5가길 16", "menu": "", "category": "한식", "tags": [], "photo": ""}, {"date": "2026-03-17", "restaurant": "순남시래기 명동직영점", "dong": "서울 중구 명동10길 35-20", "menu": "", "category": "한식", "tags": [], "photo": ""}];
   var CAT_COLORS = {"한식": "#2a78d6", "일식": "#eb6834", "양식": "#1baf7a", "중식": "#eda100", "기타": "#e87ba4"};
   var CAT_ORDER = ["한식", "일식", "양식", "중식", "기타"];
+  // 아직 안 가본 주변 식당. 카카오는 보드 생성 시점에만 부른다(키를 공개 HTML에
+  // 박을 수 없다). 위치 미설정이나 오프라인 빌드면 빈 배열이다.
+  var NEARBY = [{"name": "삼호", "address": "서울 동작구 보라매로5길 51", "distance": "3", "place_url": "http://place.map.kakao.com/9811495", "tags": []}, {"name": "배꼽", "address": "서울 동작구 보라매로5길 51", "distance": "3", "place_url": "http://place.map.kakao.com/16331340", "tags": []}, {"name": "가츠몽 보라매롯데타워점", "address": "서울 동작구 보라매로5길 51", "distance": "4", "place_url": "http://place.map.kakao.com/1396950283", "tags": ["#육류", "#국물", "#밀가루"]}, {"name": "한샘푸드 보라매나산스위트점", "address": "서울 동작구 보라매로5가길 24", "distance": "66", "place_url": "http://place.map.kakao.com/1454123550", "tags": []}, {"name": "나눔", "address": "서울 동작구 보라매로5가길 24", "distance": "67", "place_url": "http://place.map.kakao.com/16821852", "tags": []}, {"name": "장원분식", "address": "서울 동작구 보라매로5가길 24", "distance": "68", "place_url": "http://place.map.kakao.com/16591925", "tags": []}, {"name": "샐러디 보라매점", "address": "서울 동작구 보라매로5길 43", "distance": "76", "place_url": "http://place.map.kakao.com/2131413684", "tags": ["#라이트함"]}, {"name": "샐그릿", "address": "서울 동작구 보라매로5길 43", "distance": "76", "place_url": "http://place.map.kakao.com/2078180110", "tags": ["#라이트함"]}, {"name": "갓파도", "address": "서울 동작구 보라매로5길 43", "distance": "76", "place_url": "http://place.map.kakao.com/1690922308", "tags": ["#해산물"]}, {"name": "도리장칼국수", "address": "서울 동작구 보라매로5길 43", "distance": "76", "place_url": "http://place.map.kakao.com/293359017", "tags": ["#국물", "#밀가루"]}, {"name": "본죽&비빔밥cafe 보라매점", "address": "서울 동작구 보라매로5길 43", "distance": "76", "place_url": "http://place.map.kakao.com/1081186310", "tags": ["#라이트함"]}, {"name": "슬로우캘리 보라매공원점", "address": "서울 동작구 보라매로5길 43", "distance": "76", "place_url": "http://place.map.kakao.com/972017893", "tags": ["#라이트함"]}, {"name": "육정석", "address": "서울 동작구 보라매로5길 43", "distance": "76", "place_url": "http://place.map.kakao.com/1231543978", "tags": ["#육류"]}, {"name": "보라매궁중삼계탕", "address": "서울 동작구 보라매로5길 43", "distance": "77", "place_url": "http://place.map.kakao.com/8823723", "tags": ["#육류", "#국물"]}, {"name": "칠리부대찌개&스테이크", "address": "서울 동작구 보라매로5가길 16", "distance": "80", "place_url": "http://place.map.kakao.com/514701497", "tags": ["#국물"]}];
+  // 날씨 조회용 좌표(소수점 2자리). 없으면 날씨 가점 없이 추천한다.
+  var WEATHER_LOC = {"lat": 37.49, "lon": 126.92};
 
   var DOW = ["월", "화", "수", "목", "금", "토", "일"];
 
@@ -805,70 +833,199 @@
   }
 
   // ── 추천 ──
-  // 최근 14일 안에 간 곳은 후보에서 뺀다. 다 최근이면 가장 오래전에 간 곳.
+  // 세 축으로 점수를 매긴다: 얼마나 안 갔나(방문 주기), 최근 뭘 편식했나(태그 밸런스),
+  // 오늘 날씨. 날씨는 비동기라 없이 먼저 그리고 응답이 오면 다시 그린다.
+
+  var weatherState = null;   // null이면 아직 모름/못 가져옴. 'Rain' | 'Snow' | 'Clear'
+  var recoCursor = 0;        // '다른 추천'을 누른 횟수 — 상위 후보를 순회한다.
+
+  // 최근 10끼의 태그를 세어 편식을 감지한다. 서버에 있던 기준을 그대로 옮겼다.
+  function tagBalance() {
+    var counts = {};
+    POSTS.slice(0, 10).forEach(function (p) {
+      (p.tags || []).forEach(function (t) { counts[t] = (counts[t] || 0) + 1; });
+    });
+    return counts;
+  }
+
+  // 무엇을 밀어주고 무엇을 피할지 + 사람에게 보여줄 이유 문구.
+  function recoIntent() {
+    var counts = tagBalance();
+    var target = [], avoid = [], reasons = [];
+
+    if (weatherState === "Rain") {
+      target.push("#국물");
+      reasons.push("비가 오니 따끈한 국물이 좋겠어요.");
+    } else if (weatherState === "Snow") {
+      target.push("#국물");
+      reasons.push("눈이 오니 따뜻한 국물이 당기네요.");
+    }
+
+    if ((counts["#육류"] || 0) >= 4) {
+      avoid.push("#육류");
+      target.push("#해산물", "#라이트함");
+      reasons.push("최근 고기가 잦았어요. 해물이나 가벼운 쪽은 어떠세요?");
+    } else if ((counts["#밀가루"] || 0) >= 3) {
+      avoid.push("#밀가루");
+      reasons.push("면·빵이 이어졌네요. 밥이 들어간 메뉴를 추천드려요.");
+    }
+
+    if (!reasons.length) reasons.push("오늘 점심은 이런 메뉴 어떠세요?");
+    return { target: target, avoid: avoid, reason: reasons.join(" ") };
+  }
+
+  function tagScore(tags, intent) {
+    var s = 0;
+    (tags || []).forEach(function (t) {
+      if (intent.target.indexOf(t) >= 0) s += 15;
+      if (intent.avoid.indexOf(t) >= 0) s -= 20;
+    });
+    return s;
+  }
+
+  // 가본 식당 후보. 오래 안 갈수록 가점, 어제 간 곳은 크게 감점.
+  function regularCandidates(intent) {
+    var lastBy = {}, tagsBy = {}, photoBy = {};
+    POSTS.forEach(function (p) {
+      if (!lastBy[p.restaurant] || p.date > lastBy[p.restaurant]) {
+        lastBy[p.restaurant] = p.date;
+        tagsBy[p.restaurant] = p.tags || [];
+      }
+      if (!photoBy[p.restaurant] && p.photo) photoBy[p.restaurant] = p.photo;
+    });
+
+    return Object.keys(lastBy).map(function (name) {
+      var days = Math.round((TODAY - parse(lastBy[name])) / 86400000);
+      var score = Math.min(days, 30) + tagScore(tagsBy[name], intent);
+      if (days <= 1) score -= 50;
+      return {
+        name: name, last: lastBy[name], days: days,
+        tags: tagsBy[name], photo: photoBy[name] || "", score: score
+      };
+    // 동점이면 더 오래 안 간 곳이 먼저다. 30일 캡 때문에 오래된 집들은 전부
+    // 동점이 되는데, 이 타이브레이크가 없으면 그중 최근에 간 곳이 앞으로 온다.
+    }).sort(function (a, b) { return (b.score - a.score) || (b.days - a.days); });
+  }
+
+  // 아직 안 가본 주변 식당. 거리는 동점일 때만 본다.
+  function newCandidates(intent) {
+    var visited = {};
+    POSTS.forEach(function (p) { visited[p.restaurant] = true; });
+
+    return NEARBY.filter(function (n) { return !visited[n.name]; })
+      .map(function (n) {
+        return {
+          name: n.name, address: n.address || "", distance: n.distance || "",
+          place_url: n.place_url || "", tags: n.tags || [],
+          score: tagScore(n.tags, intent)
+        };
+      })
+      .sort(function (a, b) {
+        return (b.score - a.score) || ((+a.distance || 1e9) - (+b.distance || 1e9));
+      });
+  }
+
+  function mapLink(name) {
+    return "https://map.kakao.com/link/search/" + encodeURIComponent(name);
+  }
+
   function renderReco() {
     var nameEl = document.getElementById("reco-name");
     var whyEl = document.getElementById("reco-why");
     var imgEl = document.getElementById("reco-img");
-    
-    // 이미지 초기화
-    if (imgEl) {
-      imgEl.style.display = "none";
-      imgEl.src = "";
-    }
-    
-    // 오늘 기록이 있다면 무조건 오늘 간 식당을 띄운다
-    var todaysPosts = byDate[TODAY_ISO];
-    if (todaysPosts && todaysPosts.length > 0) {
-      var post = todaysPosts[0];
+    var labelEl = document.getElementById("reco-label");
+    var reasonEl = document.getElementById("reco-reason");
+    var newEl = document.getElementById("reco-new");
+    var againEl = document.getElementById("reco-again");
+
+    imgEl.style.display = "none";
+    imgEl.src = "";
+
+    // 오늘 기록이 있으면 추천보다 그게 먼저다 — 팀이 가장 먼저 궁금해하는 정보다.
+    var todays = byDate[TODAY_ISO];
+    if (todays && todays.length) {
+      var post = todays[0];
+      labelEl.hidden = true;
+      reasonEl.hidden = true;
+      newEl.hidden = true;
+      againEl.style.display = "none";
       nameEl.textContent = post.restaurant;
       whyEl.textContent = "오늘은 이곳에서 점심을 드셨군요! 😋";
-      document.getElementById("reco-again").style.display = "none";
-      
-      if (imgEl && post.photo) {
+      if (post.photo) {
         imgEl.src = post.photo;
         imgEl.style.display = "block";
       }
       return;
     }
-    
-    document.getElementById("reco-again").style.display = ""; // 다시 보이기
+
+    againEl.style.display = "";
 
     if (!POSTS.length) {
+      labelEl.hidden = true;
+      reasonEl.hidden = true;
+      newEl.hidden = true;
       nameEl.textContent = "—";
       whyEl.textContent = "기록이 아직 없습니다.";
       return;
     }
-    var lastBy = {};
-    POSTS.forEach(function (p) {
-      if (!lastBy[p.restaurant] || p.date > lastBy[p.restaurant]) lastBy[p.restaurant] = p.date;
-    });
-    var cutoff = iso(addDays(TODAY, -14));
-    var names = Object.keys(lastBy);
-    var fresh = names.filter(function (n) { return lastBy[n] < cutoff; });
-    var pick, why;
-    if (fresh.length) {
-      pick = fresh[Math.floor(Math.random() * fresh.length)];
-      why = "최근 2주간 안 간 " + fresh.length + "곳 중에서 골랐습니다 · 마지막 방문 " + lastBy[pick];
-    } else {
-      pick = names.reduce(function (a, b) { return lastBy[a] <= lastBy[b] ? a : b; });
-      why = "다 최근에 갔네요. 그중 가장 오래된 곳입니다 · 마지막 방문 " + lastBy[pick];
-    }
-    nameEl.textContent = pick;
-    whyEl.textContent = why;
-    
-    // 랜덤 추천 시에도 해당 식당의 가장 최신 사진을 찾아 띄워준다
-    var latestPhoto = null;
-    for (var i = 0; i < POSTS.length; i++) {
-      if (POSTS[i].restaurant === pick && POSTS[i].photo) {
-        latestPhoto = POSTS[i].photo;
-        break; // POSTS는 최신순이므로 첫 번째가 가장 최신
-      }
-    }
-    if (imgEl && latestPhoto) {
-      imgEl.src = latestPhoto;
+
+    var intent = recoIntent();
+    reasonEl.textContent = intent.reason;
+    reasonEl.hidden = false;
+
+    // 상위 5곳 안에서 순회한다. 점수를 살리면서도 매번 같은 집만 나오지 않는다.
+    var regulars = regularCandidates(intent);
+    var pool = regulars.slice(0, Math.min(5, regulars.length));
+    var pick = pool[recoCursor % pool.length];
+
+    labelEl.hidden = false;
+    nameEl.textContent = pick.name;
+    whyEl.textContent = "마지막 방문 " + pick.last + " · " + pick.days + "일 전"
+      + (pick.tags.length ? " · " + pick.tags.join(" ") : "");
+    if (pick.photo) {
+      imgEl.src = pick.photo;
       imgEl.style.display = "block";
     }
+
+    var fresh = newCandidates(intent);
+    if (fresh.length) {
+      var n = fresh[recoCursor % fresh.length];
+      var link = document.getElementById("reco-new-link");
+      link.textContent = n.name;
+      link.href = n.place_url || mapLink(n.name);
+      document.getElementById("reco-new-meta").textContent =
+        [n.address, n.distance ? n.distance + "m" : "", n.tags.join(" ")]
+          .filter(Boolean).join(" · ");
+      newEl.hidden = false;
+    } else {
+      newEl.hidden = true;
+    }
+  }
+
+  // 날씨는 있으면 좋고 없으면 그만이다. 절대 추천을 막지 않는다.
+  // wttr.in은 CORS 헤더가 없어 브라우저에서 못 부른다 → 키가 필요 없고 CORS를
+  // 허용하는 Open-Meteo를 쓴다. file://(origin null)에서도 동작한다.
+  function loadWeather() {
+    if (!WEATHER_LOC || typeof fetch !== "function") return;
+
+    var url = "https://api.open-meteo.com/v1/forecast?latitude=" + WEATHER_LOC.lat
+      + "&longitude=" + WEATHER_LOC.lon + "&current=weather_code";
+
+    var done = false;
+    var timer = setTimeout(function () { done = true; }, 3000);
+
+    fetch(url).then(function (r) {
+      return r.ok ? r.json() : null;
+    }).then(function (data) {
+      if (done || !data || !data.current) return;
+      clearTimeout(timer);
+      var c = data.current.weather_code;
+      // WMO 코드: 비 51-67·80-82·95-99, 눈 71-77·85-86.
+      if ((c >= 71 && c <= 77) || c === 85 || c === 86) weatherState = "Snow";
+      else if ((c >= 51 && c <= 67) || (c >= 80 && c <= 82) || c >= 95) weatherState = "Rain";
+      else weatherState = "Clear";
+      renderReco();
+    }).catch(function () { /* 오프라인이면 조용히 날씨 없이 간다. */ });
   }
 
   // ── 표 ──
@@ -933,7 +1090,10 @@
   }
   document.getElementById("r-all").onclick = function () { setRange("all"); };
   document.getElementById("r-month").onclick = function () { setRange("month"); };
-  document.getElementById("reco-again").onclick = renderReco;
+  document.getElementById("reco-again").onclick = function () {
+    recoCursor++;   // 랜덤이 아니라 점수 상위 후보를 차례로 넘긴다.
+    renderReco();
+  };
 
   document.getElementById("sub").textContent = POSTS.length
     ? POSTS[POSTS.length - 1].date + " – " + POSTS[0].date + " · 총 " + POSTS.length + "번"
@@ -947,6 +1107,7 @@
   renderStats();
   renderReco();
   renderTable();
+  loadWeather();   // 날씨가 오면 renderReco()가 한 번 더 돈다.
 })();
 </script>
 </body>
