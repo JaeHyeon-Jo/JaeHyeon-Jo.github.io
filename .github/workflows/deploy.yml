@@ -32,14 +32,14 @@ jobs:
           
           # 1. 점심메뉴 이미지 폴더 구성 (Blogger 이미지 링크 안 깨지도록)
           mkdir public/점심메뉴
-          cp 컨설턴트점심메뉴/image/* public/점심메뉴/ || true
+          cp image/* public/점심메뉴/ || true
           
           # 2. 런치 보드 폴더 구성
           mkdir public/lunch
-          cp 컨설턴트점심메뉴/lunch/* public/lunch/ || true
+          cp lunch/* public/lunch/ || true
           
           # 3. 루트 도메인용 HTML (구글 서치콘솔 등)
-          cp 컨설턴트점심메뉴/*.html public/ || true
+          cp *.html public/ || true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
