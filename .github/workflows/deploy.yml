@@ -34,6 +34,10 @@ jobs:
           mkdir public/점심메뉴
           cp image/* public/점심메뉴/ || true
           
+          # 개발 블로그 이미지: 점심 메뉴와 별도 경로로 배포
+          mkdir -p public/guri-builds
+          cp -R guri-builds/. public/guri-builds/
+          
           # 2. 런치 보드 폴더 구성
           mkdir public/lunch
           cp lunch/* public/lunch/ || true
