@@ -6,6 +6,7 @@ on:
       - main
 
 permissions:
+  actions: read
   contents: read
   pages: write
   id-token: write
@@ -15,37 +16,70 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build:
     runs-on: ubuntu-latest
+    outputs:
+      artifact_name: github-pages-${{ github.run_attempt }}
+      artifact_id: ${{ steps.upload.outputs.artifact_id }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
-      
+
       - name: Prepare deploy folder
         run: |
           mkdir public
-          
+
           # 1. 점심메뉴 이미지 폴더 구성 (Blogger 이미지 링크 안 깨지도록)
           mkdir public/점심메뉴
           cp image/* public/점심메뉴/ || true
-          
+
           # 2. 런치 보드 폴더 구성
           mkdir public/lunch
           cp lunch/* public/lunch/ || true
-          
+
           # 3. 루트 도메인용 HTML (구글 서치콘솔 등)
           cp *.html public/ || true
 
       - name: Upload artifact
+        id: upload
         uses: actions/upload-pages-artifact@v3
         with:
+          name: github-pages-${{ github.run_attempt }}
           path: 'public'
-      
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Wait for Pages artifact
+        shell: bash
+        timeout-minutes: 2
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_NAME: ${{ needs.build.outputs.artifact_name }}
+          ARTIFACT_ID: ${{ needs.build.outputs.artifact_id }}
+        run: |
+          : "${ARTIFACT_ID:?Missing uploaded Pages artifact ID}"
+          for attempt in {1..12}; do
+            if visible_id=$(gh api --method GET "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts" \
+              -f name="$ARTIFACT_NAME" \
+              --jq ".artifacts[] | select(.id == $ARTIFACT_ID and .expired == false) | .id") &&
+              [[ "$visible_id" == "$ARTIFACT_ID" ]]; then
+              echo "Pages artifact $ARTIFACT_ID is ready."
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::The uploaded Pages artifact $ARTIFACT_ID is still unavailable."
+          exit 1
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: ${{ needs.build.outputs.artifact_name }}
